@@ -17,6 +17,8 @@ List all available commands
 fab --list
 ```
 
+Note: Other commands are not available right now.
+
 ## Example Config File
 
 ### config.ini
