@@ -36,3 +36,11 @@ inputdir = /path/to/inputFiles/200901_M00325_0225_000000000-G66LJ
 [COMMANDS]
 rsynccommand = -zahqe "ssh -i {}" {} {}@{}:{}
 ```
+
+## Development by Versions
+- v0.0.1 - Finalize rsync command
+- v0.0.2 - Calling from outside script
+- v0.0.3 - SQLite DB
+- v0.0.4 - Email functionality
+- v0.0.5 - Web UI
+ 
