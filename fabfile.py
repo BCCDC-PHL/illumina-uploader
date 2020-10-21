@@ -1,39 +1,14 @@
 #!/usr/bin/env python
-
 from fabric import task
-from configparser import ConfigParser
-import platform
-
-configObject = ConfigParser()
-configObject.read("config.ini")
 
 @task
 def checkupSystemUptime(context):
     context.run("uptime")
 
 @task
-def rsyncFolders(context):
-    serverInfo = configObject["SERVER"]
-    localInfo = configObject["LOCAL"]
-    commands = configObject["COMMANDS"]
-    
-    pem = serverInfo["pemfile"]
-    host = serverInfo["host"]
-    loginid = serverInfo["loginid"]
-    outDir = serverInfo["outputdir"]
-
-    inDir = localInfo["inputdir"]
-    inFile = localInfo["filename"]
-    
-    chmod = commands["chmodcommand"]
-    rsync = commands["rsynccommand"]
-
-    if platform.system()=="Windows":
-        sshcommand = commands["sshwincommand"]
-    else:
-        sshcommand = commands["sshnixcommand"]
-    print("Running: rsync "+rsync.format(chmod, sshcommand, pem, inDir+inFile, loginid, host, outDir))
-    context.run("rsync "+rsync.format(chmod, sshcommand, pem, inDir+inFile, loginid, host, outDir))
+def rsyncFolder(context, args):
+    print("Running: rsync "+args["rsync"].format(args["chmod"], args["sshcommand"], args["pem"], args["inDir"]+args["inFile"], args["login"], args["host"], args["outDir"]))
+    context.run(   "rsync "+args["rsync"].format(args["chmod"], args["sshcommand"], args["pem"], args["inDir"]+args["inFile"], args["login"], args["host"], args["outDir"]))
 
 @task
 def seekFolders(context):

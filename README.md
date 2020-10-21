@@ -1,46 +1,66 @@
 # illumina-uploader
-Watch for new files in Illumina sequencer and upload to remote server
+Lightweight program for Illumina sequencer that watches for new sequence folders and uploads to remote server.
+
+## Features
+- Lightweight alternative to [SeqUDAS Client](https://github.com/duanjunhyq/sequdas_client) 
+- Keeps track of folders uploaded
+- Minimal Dependencies
+- Cross platform compatible
 
 ## Installing
 Get all requirements
 ```
 pip install -r requirements.txt
 ```
-## Usage
-To rsync folders with 10 second timeout
-```
-fab -T 10 rsyncFolders
-```
 
-List all available commands
-```
-fab --list
-```
+## Configuration
+The program uses standard python configuration file (.ini format) along with runtime arguments 
 
-Note: Other commands are not available right now.
-
-## Example Config File
-
-### config.ini
+### Example config.ini
 
 ```
 [SERVER]
 host = XXX
 pemfile = XXX
 loginid = XXX
-outputdir = /path/to/covid-19_test_rsync/
+outputdir = /home/jaideep.singh/covid-19_test_rsync/
 
 [LOCAL]
-inputdir = /path/to/inputFiles/200901_M00325_0225_000000000-G66LJ
+inputdir = /path/to/input/directory/
 
 [COMMANDS]
-rsynccommand = -zahqe "ssh -i {}" {} {}@{}:{}
+rsynccommandold = -zahqe "{} -i {}" {} {}@{}:{}
+rsynccommand = -artvh -p {} -e "{} -i {}" {} {}@{}:{}
+sshnixcommand = ssh
+sshwincommand = /usr/bin/ssh
+chmodcommand = --chmod=ug=rwx
+```
+
+## Running
+To upload one specific folder
+```
+python illumina_uploader.py --config_file config.ini --upload_single_folder 200619_M00325_0209_000000000-J6M34
+```
+
+To upload multiple folders
+```
+TBD
+```
+
+To upload all
+```
+TBD
 ```
 
 ## Development by Versions
-- v0.0.1 - Finalize rsync command
-- v0.0.2 - Calling from outside script
-- v0.0.3 - SQLite DB
-- v0.0.4 - Email functionality
-- v0.0.5 - Web UI
+- ~~v0.0.1 - Test rsync command~~
+- ~~v0.0.2 - Finalize rsync command~~
+- ~~v0.0.3 - Test one folder from main script~~
+- v0.0.4 - SQLite DB integration
+- v0.0.5 - Test multiple folders from main script
+- v0.0.6 - Generate update file from DB
+- v0.0.7 - MD5 checksums
+- v0.1 - Email functionality
+- v0.2 - Web UI
+- v0.3 - API
  
