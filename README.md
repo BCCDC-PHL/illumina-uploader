@@ -34,6 +34,16 @@ rsynccommand = -artvh -p {} -e "{} -i {}" {} {}@{}:{}
 sshnixcommand = ssh
 sshwincommand = /usr/bin/ssh
 chmodcommand = --chmod=ug=rwx
+
+[DB]
+location = local.db
+foldertable = folderinfo
+
+[SQL]
+createtable = XXX
+checkfolderpresence = XXX
+insertfolder = XXX
+getfolderstoupload = XXX
 ```
 
 ## Running
@@ -60,6 +70,8 @@ TBD
 - v0.0.5 - Test multiple folders from main script
 - v0.0.6 - Generate update file from DB
 - v0.0.7 - MD5 checksums
+- v0.0.8 - Enhanced logging
+- v0.0.9 - Tests
 - v0.1 - Email functionality
 - v0.2 - Web UI
 - v0.3 - API

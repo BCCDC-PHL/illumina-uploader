@@ -7,8 +7,8 @@ def checkupSystemUptime(context):
 
 @task
 def rsyncFolder(context, args):
-    print("Running: rsync "+args["rsync"].format(args["chmod"], args["sshcommand"], args["pem"], args["inDir"]+args["inFile"], args["login"], args["host"], args["outDir"]))
-    context.run(   "rsync "+args["rsync"].format(args["chmod"], args["sshcommand"], args["pem"], args["inDir"]+args["inFile"], args["login"], args["host"], args["outDir"]))
+    print("Running: rsync "+args["rsync"].format_map(args))
+    context.run(   "rsync "+args["rsync"].format_map(args))
 
 @task
 def seekFolders(context):
