@@ -47,6 +47,11 @@ getfolderstoupload = XXX
 ```
 
 ## Running
+Initialise database
+```
+python illumina_uploader.py --config_file config.ini --create_db
+```
+
 To upload one specific folder
 ```
 python illumina_uploader.py --config_file config.ini --upload_single_folder 200619_M00325_0209_000000000-J6M34

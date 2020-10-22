@@ -17,7 +17,7 @@ class database:
     
     def createDb(self):
         c = self.connection.cursor()
-        c.execute(self.queries["sqlcreatetable"].format(self.folderTable))
+        c.execute(self.queries["createtable"].format(self.folderTable))
         self.connection.commit()
         self.closeConnection()
         print("DB table folderinfo created!")
