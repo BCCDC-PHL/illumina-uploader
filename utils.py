@@ -21,6 +21,7 @@ class database:
         self.connection.commit()
         self.closeConnection()
         print("DB table folderinfo created!")
+        exit()
 
     def getFolderList(self):
         '''
@@ -50,7 +51,7 @@ class database:
             self.connection.commit()
             self.closeConnection()
         else:
-            print("Folder Already Present {}".format(folder))
+            print("Folder Already Present {}".format(folderName))
 
     def destroyDb(self):
         '''

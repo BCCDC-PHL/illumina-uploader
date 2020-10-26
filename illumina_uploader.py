@@ -15,11 +15,12 @@ def main(args):
     dbObject = database(dbInfo, sqlInfo)
     if args.create_db:
         dbObject.createDb()
-    
+
     if args.upload_single_folder:
-        dbObject.addToFolderList(args.upload_single_folder)
-    else:
-        dbObject.getFolderList()
+        try:
+            dbObject.addToFolderList(args.upload_single_folder)
+        except sqlite3.OperationalError as error:
+            print("DB error: {0}".format(error))
     
     serverInfo = configObject["SERVER"]
     localInfo = configObject["LOCAL"]
@@ -46,8 +47,9 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Grab and push miseq analysis to plover.")
-    parser.add_argument("--config_file", dest="config_file", required=True)
-    parser.add_argument("--upload_single_folder", dest="upload_single_folder")
+    parser.add_argument("--config_file", required=True)
+    parser.add_argument("--upload_single_folder")
     parser.add_argument("--create_db", action="store_true")
+    parser.add_argument("--dry_run", action="store_true")
     args = parser.parse_args()
     main(args)
