@@ -57,6 +57,11 @@ To upload one specific folder
 python illumina_uploader.py --config_file config.ini --upload_single_folder 200619_M00325_0209_000000000-J6M34
 ```
 
+(Resume) Upload folders in database
+```
+TBD
+```
+
 To upload multiple folders
 ```
 TBD

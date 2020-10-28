@@ -49,6 +49,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Grab and push miseq analysis to plover.")
     parser.add_argument("--config_file", required=True)
     parser.add_argument("--upload_single_folder")
+    parser.add_argument("--pem-file")
     parser.add_argument("--create_db", action="store_true")
     parser.add_argument("--dry_run", action="store_true")
     args = parser.parse_args()
