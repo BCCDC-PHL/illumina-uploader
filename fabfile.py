@@ -11,17 +11,6 @@ def rsyncFolder(context, args):
     context.run(   "rsync "+args["rsync"].format_map(args))
 
 @task
-def seekFolders(context):
+def scanFolders(context, args):
     pass
 
-@task
-def getFolders(context):
-    pass
-
-@task
-def uploadFolders(context):
-    pass
-
-@task
-def checkFolders(context):
-    pass

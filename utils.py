@@ -53,11 +53,10 @@ class database:
                 self.connection.commit()
             else:
                 print("Folder Already Present {}".format(folderName))
-
+    
     def destroyDb(self):
         '''
         Destroy database file
         '''
         pass
 
-        

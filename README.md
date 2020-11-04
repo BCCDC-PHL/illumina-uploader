@@ -47,6 +47,8 @@ getfolderstoupload = XXX
 ```
 
 ## Running
+Delete the database before testing, as the schema is not yet finalized
+
 Initialise database
 ```
 python illumina_uploader.py --config_file config.ini --create_db
@@ -67,7 +69,7 @@ To upload multiple folders
 TBD
 ```
 
-To upload all
+Backup database
 ```
 TBD
 ```
@@ -78,10 +80,11 @@ TBD
 - ~~v0.0.3 - Test one folder from main script~~
 - ~~v0.0.4 - SQLite DB integration~~
 - v0.0.5
-    - Test multiple folders using DB
     - Add error folder name checking
     - DB Resume upload feature
-- v0.0.6 - Generate update file from DB
+- v0.0.6
+    - Generate update file from DB
+    - Test multiple folders using DB
 - v0.0.7 - MD5 checksums data integrity
 - v0.0.8
     - Enhanced logging

@@ -6,12 +6,17 @@ from configparser import ConfigParser
 from utils import database
 
 def main(args):
+    #Initialize objects
     configObject = ConfigParser()
     configObject.read(args.config_file)
     serverInfo = configObject["SERVER"]
     localInfo = configObject["LOCAL"]
     commands = configObject["COMMANDS"]
-    
+    context = Context()
+
+    #Check arguments
+
+
     #Connect to Database
     dbInfo = configObject["DB"]
     sqlInfo = configObject["SQL"]
@@ -24,6 +29,9 @@ def main(args):
             dbObject.addToFolderList(args.upload_single_folder, localInfo["folderregex"])
         except sqlite3.OperationalError as error:
             print("DB error: {0}".format(error))
+    
+    if args.scan_folder:
+        pass
 
     #Check system
     sshcommand = commands["sshwincommand"] if platform.system()=="Windows" else commands["sshnixcommand"]
@@ -42,10 +50,8 @@ def main(args):
     
     #Get folders to upload
     foldersToUpload = dbObject.getFolderList()
-    
-    #Call rsync
-    context = Context()
 
+    #Call rsync
     if args.upload_single_folder:
         runargs["inFile"] = args.upload_single_folder
         rsyncFolder(context, runargs)
@@ -61,6 +67,7 @@ if __name__ == "__main__":
     parser.add_argument("--upload_single_folder")
     parser.add_argument("--pem-file")
     parser.add_argument("--create_db", action="store_true")
+    parser.add_argument("--scan_folder", action="store_true")
     parser.add_argument("--dry_run", action="store_true")
     args = parser.parse_args()
     main(args)
