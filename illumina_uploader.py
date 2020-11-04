@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import argparse, platform
+import argparse, platform, sqlite3
 from fabfile import rsyncFolder
 from invoke.context import Context
 from configparser import ConfigParser
@@ -8,7 +8,10 @@ from utils import database
 def main(args):
     configObject = ConfigParser()
     configObject.read(args.config_file)
-
+    serverInfo = configObject["SERVER"]
+    localInfo = configObject["LOCAL"]
+    commands = configObject["COMMANDS"]
+    
     #Connect to Database
     dbInfo = configObject["DB"]
     sqlInfo = configObject["SQL"]
@@ -18,13 +21,9 @@ def main(args):
 
     if args.upload_single_folder:
         try:
-            dbObject.addToFolderList(args.upload_single_folder)
+            dbObject.addToFolderList(args.upload_single_folder, localInfo["folderregex"])
         except sqlite3.OperationalError as error:
             print("DB error: {0}".format(error))
-    
-    serverInfo = configObject["SERVER"]
-    localInfo = configObject["LOCAL"]
-    commands = configObject["COMMANDS"]
 
     #Check system
     sshcommand = commands["sshwincommand"] if platform.system()=="Windows" else commands["sshnixcommand"]
@@ -36,17 +35,28 @@ def main(args):
         "login":serverInfo["loginid"],
         "outDir":serverInfo["outputdir"],
         "inDir":localInfo["inputdir"],
-        "inFile":args.upload_single_folder, #TODO: TEMP
         "chmod":commands["chmodcommand"],
         "rsync":commands["rsynccommand"],
         "sshcommand":sshcommand,
     }
     
+    #Get folders to upload
+    foldersToUpload = dbObject.getFolderList()
+    
+    #Call rsync
     context = Context()
-    rsyncFolder(context, runargs)
+
+    if args.upload_single_folder:
+        runargs["inFile"] = args.upload_single_folder
+        rsyncFolder(context, runargs)
+    else:
+        for rsyncfolder in foldersToUpload:
+            runargs["inFile"] = rsyncfolder[0]
+            rsyncFolder(context, runargs)
+    
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Grab and push miseq analysis to plover.")
+    parser = argparse.ArgumentParser(description="Watch for new files in Illumina sequencer and upload to remote server.")
     parser.add_argument("--config_file", required=True)
     parser.add_argument("--upload_single_folder")
     parser.add_argument("--pem-file")

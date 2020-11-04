@@ -81,13 +81,15 @@ TBD
     - Test multiple folders using DB
     - Add error folder name checking
     - DB Resume upload feature
-    - Capture Stdout and Stderr properly
 - v0.0.6 - Generate update file from DB
 - v0.0.7 - MD5 checksums data integrity
-- v0.0.8 - Enhanced logging
-- v0.0.9 - Setup.py file
+- v0.0.8
+    - Enhanced logging
+    - Capture Stdout and Stderr
+- v0.0.9
+    - Dry run argument
+    - Setup.py file
 - v0.1   - Email functionality
-- v0.1.1 - Dry run tests
 - v0.2   - Web UI
 - v0.3   - API
 - v0.4   - Progress bar in UI using API
