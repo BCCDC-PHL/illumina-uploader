@@ -57,9 +57,9 @@ To upload one specific folder
 python illumina_uploader.py --config_file config.ini --upload_single_folder 200619_M00325_0209_000000000-J6M34
 ```
 
-(Resume) Upload folders in database
+(Resume) Upload folders already in database
 ```
-TBD
+python illumina_uploader.py --config_file config.ini 
 ```
 
 To upload multiple folders
@@ -76,13 +76,21 @@ TBD
 - ~~v0.0.1 - Test rsync command~~
 - ~~v0.0.2 - Finalize rsync command~~
 - ~~v0.0.3 - Test one folder from main script~~
-- v0.0.4 - SQLite DB integration
-- v0.0.5 - Test multiple folders from main script
+- ~~v0.0.4 - SQLite DB integration~~
+- v0.0.5
+    - Test multiple folders using DB
+    - Add error folder name checking
+    - DB Resume upload feature
+    - Capture Stdout and Stderr properly
 - v0.0.6 - Generate update file from DB
-- v0.0.7 - MD5 checksums
+- v0.0.7 - MD5 checksums data integrity
 - v0.0.8 - Enhanced logging
-- v0.0.9 - Tests
-- v0.1 - Email functionality
-- v0.2 - Web UI
-- v0.3 - API
+- v0.0.9 - Setup.py file
+- v0.1   - Email functionality
+- v0.1.1 - Dry run tests
+- v0.2   - Web UI
+- v0.3   - API
+- v0.4   - Progress bar in UI using API
+- v0.5   - Generate reports for audits
+- v1.0   - First Release
  
