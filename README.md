@@ -23,10 +23,10 @@ The program uses standard python configuration file (.ini format) along with run
 host = XXX
 pemfile = XXX
 loginid = XXX
-outputdir = /home/jaideep.singh/covid-19_test_rsync/
+outputdir = XXX
 
 [LOCAL]
-inputdir = /path/to/input/directory/
+inputdir = XXX
 
 [COMMANDS]
 rsynccommandold = -zahqe "{} -i {}" {} {}@{}:{}
@@ -79,16 +79,16 @@ TBD
 - ~~v0.0.2 - Finalize rsync command~~
 - ~~v0.0.3 - Test one folder from main script~~
 - ~~v0.0.4 - SQLite DB integration~~
-- v0.0.5
-    - Add error folder name checking
-    - DB Resume upload feature
-- v0.0.6
+- ~~v0.0.5 - Add error folder name checking + DB Resume upload feature~~
+- ~~v0.0.6 - Bugfix folder name checking~~
+- v0.0.7
     - Generate update file from DB
     - Test multiple folders using DB
-- v0.0.7 - MD5 checksums data integrity
+    - backup database (at start of each run)
 - v0.0.8
     - Enhanced logging
     - Capture Stdout and Stderr
+    - MD5 checksums data integrity
 - v0.0.9
     - Dry run argument
     - Setup.py file

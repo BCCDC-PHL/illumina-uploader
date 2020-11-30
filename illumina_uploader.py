@@ -26,7 +26,7 @@ def main(args):
 
     if args.upload_single_folder:
         try:
-            dbObject.addToFolderList(args.upload_single_folder, localInfo["folderregex"])
+            dbObject.addToFolderList(args.upload_single_folder, localInfo["folderregex"], localInfo["inputdir"])
         except sqlite3.OperationalError as error:
             print("DB error: {0}".format(error))
     

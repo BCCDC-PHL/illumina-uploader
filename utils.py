@@ -36,14 +36,11 @@ class database:
             print("No new files to upload")
             exit(0)
 
-    def addToFolderList(self, folderName, folderRegex):
+    def addToFolderList(self, folderName, folderRegex, inputdir):
         '''
         Add folder to table
         '''
-        if not re.match(folderRegex,folderName):
-            print("Error wrong folder format, please check {}".format(folderName))
-            exit(0)
-        else:
+        if self._folderCheck(folderName, folderRegex, inputdir):
             c = self.connection.cursor()
             c.execute(self.queries["checkfolderpresence"].format(self.folderTable, folderName))
             if c.fetchone() is None:
@@ -53,10 +50,22 @@ class database:
                 self.connection.commit()
             else:
                 print("Folder Already Present {}".format(folderName))
+        else:
+            print("Please check folder name and/or location {}".format(folderName))
+            exit(0)
     
+    def _folderCheck(self, folderName, folderRegex, inputdir):
+        for folder in os.listdir(inputdir):
+            if re.match(folderRegex, folder) and folderName==folder:
+                return True
+        return False
+
     def destroyDb(self):
         '''
         Destroy database file
         '''
         pass
 
+
+if __name__ == "__main__":
+    pass
