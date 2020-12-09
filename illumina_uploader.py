@@ -8,7 +8,7 @@ from utils import database
 def main(args):
     #Initialize objects
     configObject = ConfigParser()
-    configObject.read(args.config_file)
+    configObject.read(args.config)
     serverInfo = configObject["SERVER"]
     localInfo = configObject["LOCAL"]
     commands = configObject["COMMANDS"]
@@ -24,14 +24,14 @@ def main(args):
     if args.create_db:
         dbObject.createDb()
 
-    if args.upload_single_folder:
+    if args.upload_folder or args.scan_directory:
         try:
-            dbObject.addToFolderList(args.upload_single_folder, localInfo["folderregex"], localInfo["inputdir"])
+            dbObject.addToFolderList(args.upload_folder, localInfo["folderregex"], localInfo["inputdir"])
         except sqlite3.OperationalError as error:
             print("DB error: {0}".format(error))
-    
-    if args.scan_folder:
-        pass
+    else:
+        print("Need either upload-folder or scan-directory argument")
+        exit(0)
 
     #Check system
     sshcommand = commands["sshwincommand"] if platform.system()=="Windows" else commands["sshnixcommand"]
@@ -63,12 +63,12 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Watch for new files in Illumina sequencer and upload to remote server.")
-    parser.add_argument("--config_file", required=True)
-    parser.add_argument("--upload_single_folder")
-    parser.add_argument("--scan_directory")
+    parser.add_argument("--config", required=True)
+    parser.add_argument("--upload-folder")
+    parser.add_argument("--scan-directory")
     parser.add_argument("--pem-file")
-    parser.add_argument("--create_db", action="store_true")
-    parser.add_argument("--scan_folder", action="store_true")
-    parser.add_argument("--dry_run", action="store_true")
+    parser.add_argument("--create-db", action="store_true")
+    parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
+    print(args)
     main(args)

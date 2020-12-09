@@ -36,7 +36,7 @@ class database:
             print("No new files to upload")
             exit(0)
 
-    def addToFolderList(self, folderName, folderRegex, inputdir):
+    def addToFolderList(self, inputdir, folderRegex, folderName=False):
         '''
         Add folder to table
         '''
@@ -53,6 +53,7 @@ class database:
         else:
             print("Please check folder name and/or location {}".format(folderName))
             exit(0)
+    
     
     def _folderCheck(self, folderName, folderRegex, inputdir):
         for folder in os.listdir(inputdir):
