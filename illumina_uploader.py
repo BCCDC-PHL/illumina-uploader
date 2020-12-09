@@ -65,6 +65,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Watch for new files in Illumina sequencer and upload to remote server.")
     parser.add_argument("--config_file", required=True)
     parser.add_argument("--upload_single_folder")
+    parser.add_argument("--scan_directory")
     parser.add_argument("--pem-file")
     parser.add_argument("--create_db", action="store_true")
     parser.add_argument("--scan_folder", action="store_true")
