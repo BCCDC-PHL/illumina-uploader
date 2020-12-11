@@ -36,26 +36,30 @@ class database:
             print("No new files to upload")
             exit(0)
 
-    def addToFolderList(self, inputdir, folderRegex, folderName=False):
+    def insertFolders(self, inputdir, folderRegex, folderName=None):
         '''
         Add folder to table
         '''
-        if self._folderCheck(folderName, folderRegex, inputdir):
-            c = self.connection.cursor()
-            c.execute(self.queries["checkfolderpresence"].format(self.folderTable, folderName))
-            if c.fetchone() is None:
-                print("Inserting Folder {}".format(folderName))
-                currenttime = datetime.now().strftime("%d-%b-%Y (%H:%M:%S.%f)")
-                c.execute(self.queries["insertfolder"].format(self.folderTable, folderName, "CREATED", currenttime))
-                self.connection.commit()
+        try:
+            if self._returnFolders(inputdir, folderRegex, folderName=None):
+                c = self.connection.cursor()
+                c.execute(self.queries["checkfolderpresence"].format(self.folderTable, folderName))
+                if c.fetchone() is None:
+                    print("Inserting Folder {}".format(folderName))
+                    currenttime = datetime.now().strftime("%d-%b-%Y (%H:%M:%S.%f)")
+                    c.execute(self.queries["insertfolder"].format(self.folderTable, folderName, "CREATED", currenttime))
+                    self.connection.commit()
+                else:
+                    print("Folder Already Present {}".format(folderName))
             else:
-                print("Folder Already Present {}".format(folderName))
-        else:
-            print("Please check folder name and/or location {}".format(folderName))
-            exit(0)
+                print("Please check folder name {} and/or location {}".format(folderName, inputdir))
+                exit(0)
+        except sqlite3.OperationalError as error:
+            print("DB error: {0}".format(error))
     
     
-    def _folderCheck(self, folderName, folderRegex, inputdir):
+    def _returnFolders(self, inputdir, folderRegex, folderName=None):
+        folderList = []
         for folder in os.listdir(inputdir):
             if re.match(folderRegex, folder) and folderName==folder:
                 return True

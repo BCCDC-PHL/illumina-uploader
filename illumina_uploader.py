@@ -24,11 +24,10 @@ def main(args):
     if args.create_db:
         dbObject.createDb()
 
-    if args.upload_folder or args.scan_directory:
-        try:
-            dbObject.addToFolderList(args.upload_folder, localInfo["folderregex"], localInfo["inputdir"])
-        except sqlite3.OperationalError as error:
-            print("DB error: {0}".format(error))
+    if args.upload_folder:
+        dbObject.insertFolders(localInfo["inputdir"], localInfo["folderregex"], args.upload_folder)
+    elif args.scan_directory:
+        dbObject.insertFolders(localInfo["inputdir"], localInfo["folderregex"])
     else:
         print("Need either upload-folder or scan-directory argument")
         exit(0)
