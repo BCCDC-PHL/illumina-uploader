@@ -32,8 +32,7 @@ def main(args):
     elif args.scan_directory:
         dbObject.prepFolders(localInfo["inputdir"], folderRegex, None)
     else:
-        print("Need either upload-folder or scan-directory argument")
-        exit(1)
+        print("Resuming from database")
 
     #Check system
     sshcommand = commands["sshwincommand"] if platform.system()=="Windows" else commands["sshnixcommand"]

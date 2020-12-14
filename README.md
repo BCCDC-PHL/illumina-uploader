@@ -16,55 +16,45 @@ pip install -r requirements.txt
 ## Configuration
 The program uses standard python configuration file (.ini format) along with runtime arguments 
 
-### Example config.ini
-
-```
-[SERVER]
-host = XXX
-pemfile = XXX
-loginid = XXX
-outputdir = XXX
-
-[LOCAL]
-inputdir = XXX
-
-[COMMANDS]
-rsynccommandold = -zahqe "{} -i {}" {} {}@{}:{}
-rsynccommand = -artvh -p {} -e "{} -i {}" {} {}@{}:{}
-sshnixcommand = ssh
-sshwincommand = /usr/bin/ssh
-chmodcommand = --chmod=ug=rwx
-
-[DB]
-location = local.db
-foldertable = folderinfo
-
-[SQL]
-createtable = XXX
-checkfolderpresence = XXX
-insertfolder = XXX
-getfolderstoupload = XXX
-```
-
 ## Running
-Delete the database before testing, as the schema is not yet finalized
+Since the program is under active development, running arguments might change in future.
+
+| Parameter          | Required? | Description |
+| ------------------ | --------- | ----------- |
+| `--config`         | YES       | location of config file |
+| `--sequencer`      | YES       | miseq or nextseq |
+| `--upload-folder`  | NO        | location of single folder to upload |
+| `--scan-directory` | NO        | scan directory specified in config file |
+| `--pem-file`       | NO        | location of pem file |
+| `--create-db`      | NO        | initialise sqlite database |
+| `--backup-db`      | NO        | backup sqlite database |
+
+Delete database before testing, as the schema is not yet finalized.
+```
+rm local.db
+```
 
 Initialise database
 ```
-python illumina_uploader.py --config_file config.ini --create_db
+python illumina_uploader.py --config config.ini --sequencer miseq --create-db
 ```
 
 To upload one specific folder
 ```
-python illumina_uploader.py --config_file config.ini --upload_single_folder 200619_M00325_0209_000000000-J6M34
+python illumina_uploader.py --config config.ini --sequencer miseq --upload-folder 200619_M00325_0209_000000000-J6M35
 ```
 
-(Resume) Upload folders already in database
+Scan folders in a directory
 ```
-python illumina_uploader.py --config_file config.ini 
+python illumina_uploader.py --config config.ini --sequencer miseq --scan-directory
 ```
 
-To upload multiple folders
+Resume uploading folders from database
+```
+python illumina_uploader.py --config config.ini --sequencer miseq
+```
+
+Dry run test (Does not upload anything)
 ```
 TBD
 ```
@@ -82,20 +72,19 @@ TBD
 - ~~v0.0.5 - Add error folder name checking + DB Resume upload feature~~
 - ~~v0.0.6 - Bugfix folder name checking~~
 - v0.0.7
-    - Generate update file from DB
     - Test multiple folders using DB
-    - backup database (at start of each run)
+    - backup database
 - v0.0.8
     - Enhanced logging
     - Capture Stdout and Stderr
-    - MD5 checksums data integrity
 - v0.0.9
     - Dry run argument
-    - Setup.py file
-- v0.1   - Email functionality
-- v0.2   - Web UI
-- v0.3   - API
+    - Generate update file from DB
+- v0.1   - MVP release
+- v0.2   - Email functionality
+- v0.3   - Web UI
 - v0.4   - Progress bar in UI using API
-- v0.5   - Generate reports for audits
+- v0.5   - Advanced Data Integrity checks
+- v0.4   - Installer
 - v1.0   - First Release
  
