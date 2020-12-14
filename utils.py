@@ -78,7 +78,11 @@ class database:
                 yield folder
 
     def watchDirectory(self):
-        pass
+        for folder in os.listdir(inputdir):
+            if re.match(folderRegex, folder):
+                for subFolder in os.listdir(folder):
+                    if subFolder == "Basecalling_Netcopy_complete.txt":
+                        return True
 
     def backupDb(self):
         '''
