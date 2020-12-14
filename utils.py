@@ -1,10 +1,11 @@
 import sqlite3, os, re
 from datetime import datetime
+from shutil import copyfile
 
 class database:
     def __init__(self, dbInfo, queries):
         self.location = os.path.join(os.path.dirname(__file__), dbInfo["location"])
-        print("DB location: ",self.location)
+        self.backups = os.path.join(os.path.dirname(__file__), dbInfo["backupfolder"])
         self.folderTable = dbInfo["foldertable"]
         self.connection = self.initConnection()
         self.queries = queries
@@ -20,7 +21,7 @@ class database:
         c.execute(self.queries["createtable"].format(self.folderTable))
         self.connection.commit()
         self.closeConnection()
-        print("DB table folderinfo created!")
+        print("Database initialised!")
         exit(0)
 
     def getFolderList(self):
@@ -83,8 +84,10 @@ class database:
         '''
         Backup database file
         '''
-        pass
-
+        backupDbFile = self.backups + "/backup_" + datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + ".db"
+        copyfile(self.location, backupDbFile)
+        print("Database backup completed!")
+        exit(0)
 
 if __name__ == "__main__":
     pass

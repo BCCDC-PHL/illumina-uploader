@@ -20,12 +20,14 @@ def main(args):
     else:
         folderRegex = localInfo["folderregexnextseq"]
 
-    #Connect to Database
+    #Database Operations
     dbInfo = configObject["DB"]
     sqlInfo = configObject["SQL"]
     dbObject = database(dbInfo, sqlInfo)
     if args.create_db:
         dbObject.createDb()
+    if args.backup_db:
+        dbObject.backupDb()
 
     if args.upload_folder:
         dbObject.prepFolders(localInfo["inputdir"], folderRegex, args.upload_folder)
