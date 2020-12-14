@@ -31,10 +31,10 @@ def main(args):
 
     if args.upload_folder:
         dbObject.prepFolders(localInfo["inputdir"], folderRegex, args.upload_folder)
-    elif args.scan_directory:
-        dbObject.prepFolders(localInfo["inputdir"], folderRegex, None)
-    else:
+    elif args.resume:
         print("Resuming from database")
+    else:
+        dbObject.prepFolders(localInfo["inputdir"], folderRegex, None)
 
     #Check system
     sshcommand = commands["sshwincommand"] if platform.system()=="Windows" else commands["sshnixcommand"]
@@ -63,11 +63,11 @@ def main(args):
     
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Watch for new files in Illumina sequencer and upload to remote server.")
+    parser = argparse.ArgumentParser(description="Scan for new folders in a directory on Illumina sequencer and upload to remote server.")
     parser.add_argument("--config", required=True, help="location of config file")
     parser.add_argument("--sequencer", required=True, help="miseq or nextseq")
     parser.add_argument("--upload-folder", help="location of single folder to upload")
-    parser.add_argument("--scan-directory", action="store_true", help="scan directory specified in config file")
+    parser.add_argument("--resume", action="store_true", help="resume uploading from database, skip scan directory")
     parser.add_argument("--pem-file", help="location of pem file")
     parser.add_argument("--create-db", action="store_true", help="initialise sqlite database")
     parser.add_argument("--backup-db", action="store_true", help="backup sqlite database")

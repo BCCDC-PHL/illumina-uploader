@@ -39,30 +39,33 @@ Initialise database
 python illumina_uploader.py --config config.ini --sequencer miseq --create-db
 ```
 
+Scan folders in a directory and upload (default behavior)
+```
+python illumina_uploader.py --config config.ini --sequencer miseq
+```
+
 To upload one specific folder
 ```
 python illumina_uploader.py --config config.ini --sequencer miseq --upload-folder 200619_M00325_0209_000000000-J6M35
 ```
 
-Scan folders in a directory
+Resume uploading folders from database (skip scanning part)
 ```
-python illumina_uploader.py --config config.ini --sequencer miseq --scan-directory
+python illumina_uploader.py --config config.ini --sequencer miseq --resume
 ```
 
-Resume uploading folders from database
+Backup database (specify backup folder in config)
 ```
-python illumina_uploader.py --config config.ini --sequencer miseq
+python illumina_uploader.py --config config.ini --sequencer miseq --backup-db
 ```
+This will create a backup database file in following format: backup_YYYY-MM-DD-HH-MM-SS.db
 
 Dry run test (Does not upload anything)
 ```
 TBD
 ```
 
-Backup database
-```
-TBD
-```
+
 
 ## Development by Versions
 - ~~v0.0.1 - Test rsync command~~
@@ -71,14 +74,15 @@ TBD
 - ~~v0.0.4 - SQLite DB integration~~
 - ~~v0.0.5 - Add error folder name checking + DB Resume upload feature~~
 - ~~v0.0.6 - Bugfix folder name checking~~
-- v0.0.7
-    - Test multiple folders using DB
-    - backup database
+- ~~v0.0.7~~
+    - ~~Multiple folders upload~~
+    - ~~backup database~~
 - v0.0.8
+    - watch directory
     - Enhanced logging
-    - Capture Stdout and Stderr
+    - Capture Stdout and Stderr properly
 - v0.0.9
-    - Dry run argument
+    - Dry run + multiple folders upload tests
     - Generate update file from DB
 - v0.1   - MVP release
 - v0.2   - Email functionality
