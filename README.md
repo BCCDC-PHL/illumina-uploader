@@ -62,7 +62,7 @@ This will create a backup database file in following format: backup_YYYY-MM-DD-H
 
 Dry run test (Does not upload anything)
 ```
-TBD
+python illumina_uploader.py --config config.ini --sequencer miseq --dry-run
 ```
 
 

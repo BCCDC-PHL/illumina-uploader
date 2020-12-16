@@ -1,14 +1,34 @@
-import sqlite3, os, re
+import sqlite3, os, re, logging, sys
+from logging.handlers import RotatingFileHandler
 from datetime import datetime
 from shutil import copyfile
 
-class database:
-    def __init__(self, dbInfo, queries):
+def setup_logger(logFile, maxBytes=5000, backupCount=5):
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
+
+    #Set STDOUT
+    ch = logging.StreamHandler(sys.stdout)
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+
+    #Set Log file
+    fh = RotatingFileHandler(logFile, maxBytes, backupCount)
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+
+    return logger
+
+
+class Database:
+    def __init__(self, dbInfo, queries, logger):
         self.location = os.path.join(os.path.dirname(__file__), dbInfo["location"])
         self.backups = os.path.join(os.path.dirname(__file__), dbInfo["backupfolder"])
         self.folderTable = dbInfo["foldertable"]
         self.connection = self.initConnection()
         self.queries = queries
+        self.logger = logger
 
     def initConnection(self):
         return sqlite3.connect(self.location)
@@ -21,7 +41,7 @@ class database:
         c.execute(self.queries["createtable"].format(self.folderTable))
         self.connection.commit()
         self.closeConnection()
-        print("Database initialised!")
+        self.logger.info("Database initialised!")
         exit(0)
 
     def getFolderList(self):
@@ -34,7 +54,7 @@ class database:
         if result:
             return result
         else:
-            print("No new folders to upload")
+            self.logger.info("No new folders to upload")
             exit(0)
 
     def prepFolders(self, inputdir, folderRegex, folderName):
@@ -46,25 +66,25 @@ class database:
                 if self._checkFolder(inputdir, folderRegex, folderName):
                     self._insertFolders(folderName)
                 else:
-                    print("Please check folder name {} and/or location {}".format(folderName, inputdir))
+                    self.logger.error("Please check folder name {} and/or location {}".format(folderName, inputdir))
                     exit(1)
             else:
                 for subFolderName in self._checkFolders(inputdir, folderRegex):
                     self._insertFolders(subFolderName)
         except (sqlite3.OperationalError, OSError) as error:
-            print("Fatal error: {0}".format(error))
+            self.logger.error("Fatal error: {0}".format(error))
             exit(1)
 
     def _insertFolders(self, folderName):
         c = self.connection.cursor()
         c.execute(self.queries["checkfolderpresence"].format(self.folderTable, folderName))
         if c.fetchone() is None:
-            print("Inserting Folder {}".format(folderName))
+            self.logger.info("Inserting Folder {}".format(folderName))
             currenttime = datetime.now().strftime("%d-%b-%Y (%H:%M:%S.%f)")
             c.execute(self.queries["insertfolder"].format(self.folderTable, folderName, "CREATED", currenttime))
             self.connection.commit()
         else:
-            print("Folder Already Present {}".format(folderName))
+            self.logger.info("Folder Already Present {}".format(folderName))
 
     def _checkFolder(self, inputdir, folderRegex, folderName):
         for folder in os.listdir(inputdir):
@@ -77,11 +97,11 @@ class database:
             if re.match(folderRegex, folder):
                 yield folder
 
-    def watchDirectory(self):
+    def watchDirectory(self, inputdir, folderRegex, watchFile):
         for folder in os.listdir(inputdir):
             if re.match(folderRegex, folder):
                 for subFolder in os.listdir(folder):
-                    if subFolder == "Basecalling_Netcopy_complete.txt":
+                    if subFolder == watchFile:
                         return True
 
     def backupDb(self):
@@ -90,8 +110,5 @@ class database:
         '''
         backupDbFile = self.backups + "/backup_" + datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + ".db"
         copyfile(self.location, backupDbFile)
-        print("Database backup completed!")
+        self.logger.info("Database backup completed!")
         exit(0)
-
-if __name__ == "__main__":
-    pass

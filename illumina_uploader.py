@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import argparse, platform, sqlite3
-from fabfile import rsyncFolder
+from fabfile import rsyncFolder, checkupSystemUptime
 from invoke.context import Context
 from configparser import ConfigParser
-from utils import database
+from utils import Database, setup_logger
 
 def main(args):
     #Initialize objects
@@ -13,17 +13,23 @@ def main(args):
     localInfo = configObject["LOCAL"]
     commands = configObject["COMMANDS"]
     context = Context()
+    
+    #Setup logger
+    logger = setup_logger(localInfo["logfile"])
 
     #Check arguments
     if args.sequencer == "miseq":
         folderRegex = localInfo["folderregexmiseq"]
     else:
         folderRegex = localInfo["folderregexnextseq"]
+    if args.dry_run:
+        checkupSystemUptime(context, {"logger":logger})
+        exit(0)
 
     #Database Operations
     dbInfo = configObject["DB"]
     sqlInfo = configObject["SQL"]
-    dbObject = database(dbInfo, sqlInfo)
+    dbObject = Database(dbInfo, sqlInfo, logger)
     if args.create_db:
         dbObject.createDb()
     if args.backup_db:
@@ -32,7 +38,7 @@ def main(args):
     if args.upload_folder:
         dbObject.prepFolders(localInfo["inputdir"], folderRegex, args.upload_folder)
     elif args.resume:
-        print("Resuming from database")
+        logger.info("Resuming from database")
     else:
         dbObject.prepFolders(localInfo["inputdir"], folderRegex, None)
 
@@ -49,6 +55,7 @@ def main(args):
         "chmod":commands["chmodcommand"],
         "rsync":commands["rsynccommand"],
         "sshcommand":sshcommand,
+        "logger":logger,
     }
 
     #Call rsync
@@ -60,6 +67,9 @@ def main(args):
         for rsyncfolder in foldersToUpload:
             runargs["inFile"] = rsyncfolder[0]
             rsyncFolder(context, runargs)
+
+    #Watch Directory
+    dbObject.watchDirectory(localInfo["inputdir"], folderRegex, localInfo["watchfile"])
     
 
 if __name__ == "__main__":
