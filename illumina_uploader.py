@@ -3,7 +3,7 @@ import argparse, platform, sqlite3
 from fabfile import rsyncFolder, checkupSystemUptime
 from invoke.context import Context
 from configparser import ConfigParser
-from utils import Database, setup_logger
+from utils import Database, setupLogger
 
 def main(args):
     #Initialize objects
@@ -15,7 +15,7 @@ def main(args):
     context = Context()
     
     #Setup logger
-    logger = setup_logger(localInfo["logfile"])
+    logger = setupLogger(localInfo["logfile"])
 
     #Check arguments
     if args.sequencer == "miseq":
@@ -35,7 +35,11 @@ def main(args):
     if args.backup_db:
         dbObject.backupDb()
 
-    if args.upload_folder:
+    #Start Watching Directory
+    print(dbObject.watchDirectory(localInfo["inputdir"], folderRegex, localInfo["watchfilepath"], localInfo["sleeptime"]))
+    exit(0)
+    
+    if args.upload_single_run:
         dbObject.prepFolders(localInfo["inputdir"], folderRegex, args.upload_folder)
     elif args.resume:
         logger.info("Resuming from database")
@@ -67,16 +71,13 @@ def main(args):
         for rsyncfolder in foldersToUpload:
             runargs["inFile"] = rsyncfolder[0]
             rsyncFolder(context, runargs)
-
-    #Watch Directory
-    dbObject.watchDirectory(localInfo["inputdir"], folderRegex, localInfo["watchfile"])
     
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Scan for new folders in a directory on Illumina sequencer and upload to remote server.")
     parser.add_argument("--config", required=True, help="location of config file")
     parser.add_argument("--sequencer", required=True, help="miseq or nextseq")
-    parser.add_argument("--upload-folder", help="location of single folder to upload")
+    parser.add_argument("--upload-single-run", help="location of single folder run to upload")
     parser.add_argument("--resume", action="store_true", help="resume uploading from database, skip scan directory")
     parser.add_argument("--pem-file", help="location of pem file")
     parser.add_argument("--create-db", action="store_true", help="initialise sqlite database")

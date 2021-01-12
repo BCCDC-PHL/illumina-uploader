@@ -3,7 +3,7 @@ from logging.handlers import RotatingFileHandler
 from datetime import datetime
 from shutil import copyfile
 
-def setup_logger(logFile, maxBytes=5000, backupCount=5):
+def setupLogger(logFile, maxBytes=5000, backupCount=5):
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
     formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
@@ -20,6 +20,13 @@ def setup_logger(logFile, maxBytes=5000, backupCount=5):
 
     return logger
 
+def formatStdout(result, logger):
+    if result.stdout:
+        logger.info(result.stdout)
+    if result.stderr:
+        logger.info(result.stderr)
+    if result.return_code:
+        logger.info(result.return_code)
 
 class Database:
     def __init__(self, dbInfo, queries, logger):
@@ -76,6 +83,9 @@ class Database:
             exit(1)
 
     def _insertFolders(self, folderName):
+        '''
+        Internal function
+        '''
         c = self.connection.cursor()
         c.execute(self.queries["checkfolderpresence"].format(self.folderTable, folderName))
         if c.fetchone() is None:
@@ -87,22 +97,34 @@ class Database:
             self.logger.info("Folder Already Present {}".format(folderName))
 
     def _checkFolder(self, inputdir, folderRegex, folderName):
+        '''
+        Internal function
+        '''
         for folder in os.listdir(inputdir):
             if re.match(folderRegex, folder) and folderName==folder:
                 return True
         return False
 
     def _checkFolders(self, inputdir, folderRegex):
+        '''
+        Internal function
+        '''
         for folder in os.listdir(inputdir):
             if re.match(folderRegex, folder):
                 yield folder
 
-    def watchDirectory(self, inputdir, folderRegex, watchFile):
+    def watchDirectory(self, inputdir, folderRegex, watchFile, sleeptime):
+        '''
+        Check and add folders to db
+        '''
         for folder in os.listdir(inputdir):
             if re.match(folderRegex, folder):
-                for subFolder in os.listdir(folder):
+                for subFolder in os.listdir(inputdir+folder):
                     if subFolder == watchFile:
+                        #Add to prepfolders
                         return True
+        #Goto sleep for 5 mins
+        return False
 
     def backupDb(self):
         '''
