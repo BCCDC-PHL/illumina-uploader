@@ -16,20 +16,22 @@ pip install -r requirements.txt
 ## Configuration
 The program uses standard python configuration file (.ini format) along with runtime arguments 
 
-## Running
+## CLI Parameters
 Since the program is under active development, running arguments might change in future.
 
-| Parameter          | Required? | Description |
-| ------------------ | --------- | ----------- |
-| `--config`         | YES       | location of config file |
-| `--sequencer`      | YES       | miseq or nextseq |
-| `--upload-folder`  | NO        | location of single folder to upload |
-| `--scan-directory` | NO        | scan directory specified in config file |
-| `--pem-file`       | NO        | location of pem file |
-| `--create-db`      | NO        | initialise sqlite database |
-| `--backup-db`      | NO        | backup sqlite database |
+| Parameter            | Required? | Description |
+| -------------------- | --------- | ----------- |
+| `--config`           | YES       | location of config file |
+| `--sequencer`        | YES       | miseq or nextseq |
+| `--upload-single-run`| NO        | location of single folder to upload |
+| `--pem-file`         | NO        | location of pem file |
+| `--create-db`        | NO        | initialise sqlite database |
+| `--backup-db`        | NO        | backup sqlite database |
+| `--dry-run`          | NO        | test run that just prints uptime on remote server |
 
-Delete database before testing, as the schema is not yet finalized.
+## Running
+
+Delete database (recommended when testing)
 ```
 rm local.db
 ```
@@ -49,23 +51,15 @@ To upload one specific folder
 python illumina_uploader.py --config config.ini --sequencer miseq --upload-folder 200619_M00325_0209_000000000-J6M35
 ```
 
-Resume uploading folders from database (skip scanning part)
-```
-python illumina_uploader.py --config config.ini --sequencer miseq --resume
-```
-
-Backup database (specify backup folder in config)
+Backup database (specify backup folder in config). This will create a backup database file in following format: backup_YYYY-MM-DD-HH-MM-SS.db
 ```
 python illumina_uploader.py --config config.ini --sequencer miseq --backup-db
 ```
-This will create a backup database file in following format: backup_YYYY-MM-DD-HH-MM-SS.db
 
-Dry run test (Does not upload anything)
+Dry run test
 ```
 python illumina_uploader.py --config config.ini --sequencer miseq --dry-run
 ```
-
-
 
 ## Development by Versions
 - ~~v0.0.1 - Test rsync command~~
@@ -77,12 +71,12 @@ python illumina_uploader.py --config config.ini --sequencer miseq --dry-run
 - ~~v0.0.7~~
     - ~~Multiple folders upload~~
     - ~~backup database~~
-- v0.0.8
-    - watch directory
-    - Enhanced logging
-    - Capture Stdout and Stderr properly
+- ~~v0.0.8~~
+    - ~~watch directory~~
+    - ~~Enhanced logging~~
+    - ~~Capture Stdout and Stderr properly~~
 - v0.0.9
-    - Dry run + multiple folders upload tests
+    - Multiple folders upload unittests
     - Generate update file from DB
 - v0.1   - MVP release
 - v0.2   - Email functionality

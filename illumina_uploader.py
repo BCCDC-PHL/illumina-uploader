@@ -6,6 +6,9 @@ from configparser import ConfigParser
 from utils import Database, setupLogger
 
 def main(args):
+    '''
+    Main driver to initialize operations and start watch directory loop
+    '''
     #Initialize objects
     configObject = ConfigParser()
     configObject.read(args.config)
@@ -40,11 +43,9 @@ def main(args):
 
     try:
         logger.info("🧐 Start Watching Directory..")
-        sleeptime = int(localInfo["sleeptime"])*60
+        sleeptime = int(localInfo["sleeptime"])*60 #In Minutes
         while(True):
             dbObject.watchDirectory(localInfo["inputdir"], folderRegex, localInfo["watchfilepath"])
-
-            #Check system
             sshcommand = commands["sshwincommand"] if platform.system()=="Windows" else commands["sshnixcommand"]
             
             #Collect rsync command info
@@ -62,8 +63,9 @@ def main(args):
 
             #Call rsync
             if args.upload_single_run:
-                runargs["inFile"] = args.upload_folder
+                runargs["inFile"] = args.upload_single_run
                 rsyncFolder(context, runargs)
+                break
             else:
                 foldersToUpload = dbObject.getFolderList()
                 for rsyncfolder in foldersToUpload:
@@ -73,7 +75,7 @@ def main(args):
             logger.info("😴 Sleeping for {0} seconds".format(sleeptime))
             time.sleep(sleeptime)
     except KeyboardInterrupt as error:
-            logger.info("Shutting down Directory Watch!")
+            logger.info("Shutting down Directory Watch. Exiting.")
     
 
 if __name__ == "__main__":

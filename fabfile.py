@@ -5,6 +5,9 @@ from utils import formatStdout
 
 @task
 def checkupSystemUptime(context, args):
+    '''
+    Test fabric task
+    '''
     logger = args["logger"]
     try:
         logger.info("Running: uptime")
@@ -19,6 +22,10 @@ def checkupSystemUptime(context, args):
 
 @task
 def rsyncFolder(context, args):
+    '''
+    Rsync fabric task.
+    TODO check performance when writing result to logfile
+    '''
     logger = args["logger"]
     try:
         logger.info("Running: rsync "+args["rsync"].format_map(args))

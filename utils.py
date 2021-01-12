@@ -4,6 +4,9 @@ from datetime import datetime
 from shutil import copyfile
 
 def setupLogger(logFile, maxBytes=5000, backupCount=5):
+    '''
+    Setup up logger to output stdout/stderr to terminal and logfile (path from config)
+    '''
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
     formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
@@ -21,6 +24,9 @@ def setupLogger(logFile, maxBytes=5000, backupCount=5):
     return logger
 
 def formatStdout(result, logger):
+    '''
+    Format output result correctly
+    '''
     if result.stdout:
         logger.info(result.stdout)
     if result.stderr:
@@ -29,6 +35,10 @@ def formatStdout(result, logger):
         logger.info(result.return_code)
 
 class Database:
+    '''
+    Database class that handles all sqlite operations
+    TODO replace with DjangoORM in future
+    '''
     def __init__(self, dbInfo, queries, logger):
         self.location = os.path.join(os.path.dirname(__file__), dbInfo["location"])
         self.backups = os.path.join(os.path.dirname(__file__), dbInfo["backupfolder"])
@@ -44,6 +54,9 @@ class Database:
         return self.connection.close()
     
     def createDb(self):
+        '''
+        Create new sqlite instance
+        '''
         c = self.connection.cursor()
         c.execute(self.queries["createtable"].format(self.folderTable))
         self.connection.commit()
@@ -83,7 +96,7 @@ class Database:
 
     def _insertFolders(self, folderName):
         '''
-        Internal function
+        Internal function for inserting folder data into db
         '''
         c = self.connection.cursor()
         c.execute(self.queries["checkfolderpresence"].format(self.folderTable, folderName))
@@ -97,7 +110,7 @@ class Database:
 
     def _checkFolder(self, inputdir, folderRegex, folderName):
         '''
-        Internal function
+        Internal function for checking if folder exists in directory
         '''
         for folder in os.listdir(inputdir):
             if re.match(folderRegex, folder) and folderName==folder:
@@ -106,7 +119,7 @@ class Database:
 
     def _checkFolders(self, inputdir, folderRegex):
         '''
-        Internal function
+        Internal function that returns folder iterable
         '''
         for folder in os.listdir(inputdir):
             if re.match(folderRegex, folder):
@@ -114,7 +127,7 @@ class Database:
 
     def watchDirectory(self, inputdir, folderRegex, watchFile):
         '''
-        Check and add folders to db
+        Check for watch file and prep folder if matched
         '''
         for folder in os.listdir(inputdir):
             if re.match(folderRegex, folder):
@@ -125,7 +138,7 @@ class Database:
 
     def backupDb(self):
         '''
-        Backup database file
+        Backup database file (specified in config)
         '''
         backupDbFile = self.backups + "/backup_" + datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + ".db"
         copyfile(self.location, backupDbFile)
