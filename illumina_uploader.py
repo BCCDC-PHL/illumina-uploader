@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import argparse, platform, sqlite3
+import argparse, platform, sqlite3, time
 from fabfile import rsyncFolder, checkupSystemUptime
 from invoke.context import Context
 from configparser import ConfigParser
@@ -24,6 +24,7 @@ def main(args):
         folderRegex = localInfo["folderregexnextseq"]
     if args.dry_run:
         checkupSystemUptime(context, {"logger":logger})
+        logger.info("Dry run completed. Exiting.")
         exit(0)
 
     #Database Operations
@@ -32,45 +33,47 @@ def main(args):
     dbObject = Database(dbInfo, sqlInfo, logger)
     if args.create_db:
         dbObject.createDb()
+        exit(0)
     if args.backup_db:
         dbObject.backupDb()
+        exit(0)
 
-    #Start Watching Directory
-    print(dbObject.watchDirectory(localInfo["inputdir"], folderRegex, localInfo["watchfilepath"], localInfo["sleeptime"]))
-    exit(0)
-    
-    if args.upload_single_run:
-        dbObject.prepFolders(localInfo["inputdir"], folderRegex, args.upload_folder)
-    elif args.resume:
-        logger.info("Resuming from database")
-    else:
-        dbObject.prepFolders(localInfo["inputdir"], folderRegex, None)
+    try:
+        logger.info("🧐 Start Watching Directory..")
+        sleeptime = int(localInfo["sleeptime"])*60
+        while(True):
+            dbObject.watchDirectory(localInfo["inputdir"], folderRegex, localInfo["watchfilepath"])
 
-    #Check system
-    sshcommand = commands["sshwincommand"] if platform.system()=="Windows" else commands["sshnixcommand"]
-    
-    #Collect rsync command info
-    runargs = {
-        "pem": serverInfo["pemfile"],
-        "host": serverInfo["host"],
-        "login":serverInfo["loginid"],
-        "outDir":serverInfo["outputdir"],
-        "inDir":localInfo["inputdir"],
-        "chmod":commands["chmodcommand"],
-        "rsync":commands["rsynccommand"],
-        "sshcommand":sshcommand,
-        "logger":logger,
-    }
+            #Check system
+            sshcommand = commands["sshwincommand"] if platform.system()=="Windows" else commands["sshnixcommand"]
+            
+            #Collect rsync command info
+            runargs = {
+                "pem": serverInfo["pemfile"],
+                "host": serverInfo["host"],
+                "login":serverInfo["loginid"],
+                "outDir":serverInfo["outputdir"],
+                "inDir":localInfo["inputdir"],
+                "chmod":commands["chmodcommand"],
+                "rsync":commands["rsynccommand"],
+                "sshcommand":sshcommand,
+                "logger":logger,
+            }
 
-    #Call rsync
-    if args.upload_folder:
-        runargs["inFile"] = args.upload_folder
-        rsyncFolder(context, runargs)
-    else:
-        foldersToUpload = dbObject.getFolderList()
-        for rsyncfolder in foldersToUpload:
-            runargs["inFile"] = rsyncfolder[0]
-            rsyncFolder(context, runargs)
+            #Call rsync
+            if args.upload_single_run:
+                runargs["inFile"] = args.upload_folder
+                rsyncFolder(context, runargs)
+            else:
+                foldersToUpload = dbObject.getFolderList()
+                for rsyncfolder in foldersToUpload:
+                    runargs["inFile"] = rsyncfolder[0]
+                    rsyncFolder(context, runargs)
+            
+            logger.info("😴 Sleeping for {0} seconds".format(sleeptime))
+            time.sleep(sleeptime)
+    except KeyboardInterrupt as error:
+            logger.info("Shutting down Directory Watch!")
     
 
 if __name__ == "__main__":
@@ -78,7 +81,6 @@ if __name__ == "__main__":
     parser.add_argument("--config", required=True, help="location of config file")
     parser.add_argument("--sequencer", required=True, help="miseq or nextseq")
     parser.add_argument("--upload-single-run", help="location of single folder run to upload")
-    parser.add_argument("--resume", action="store_true", help="resume uploading from database, skip scan directory")
     parser.add_argument("--pem-file", help="location of pem file")
     parser.add_argument("--create-db", action="store_true", help="initialise sqlite database")
     parser.add_argument("--backup-db", action="store_true", help="backup sqlite database")

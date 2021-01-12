@@ -49,7 +49,6 @@ class Database:
         self.connection.commit()
         self.closeConnection()
         self.logger.info("Database initialised!")
-        exit(0)
 
     def getFolderList(self):
         '''
@@ -62,7 +61,7 @@ class Database:
             return result
         else:
             self.logger.info("No new folders to upload")
-            exit(0)
+            return []
 
     def prepFolders(self, inputdir, folderRegex, folderName):
         '''
@@ -113,7 +112,7 @@ class Database:
             if re.match(folderRegex, folder):
                 yield folder
 
-    def watchDirectory(self, inputdir, folderRegex, watchFile, sleeptime):
+    def watchDirectory(self, inputdir, folderRegex, watchFile):
         '''
         Check and add folders to db
         '''
@@ -121,10 +120,8 @@ class Database:
             if re.match(folderRegex, folder):
                 for subFolder in os.listdir(inputdir+folder):
                     if subFolder == watchFile:
-                        #Add to prepfolders
-                        return True
-        #Goto sleep for 5 mins
-        return False
+                        self.logger.info("Adding {0} to DB".format(folder))
+                        self.prepFolders(inputdir, folderRegex, folder)
 
     def backupDb(self):
         '''
@@ -133,4 +130,3 @@ class Database:
         backupDbFile = self.backups + "/backup_" + datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + ".db"
         copyfile(self.location, backupDbFile)
         self.logger.info("Database backup completed!")
-        exit(0)
