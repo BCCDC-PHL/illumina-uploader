@@ -46,9 +46,9 @@ Scan folders in a directory and upload (default behavior)
 python illumina_uploader.py --config config.ini --sequencer miseq
 ```
 
-To upload one specific folder
+To upload one specific folder (will not update db)
 ```
-python illumina_uploader.py --config config.ini --sequencer miseq --upload-folder 200619_M00325_0209_000000000-J6M35
+python illumina_uploader.py --config config.ini --sequencer miseq --upload-single-run 200619_M00325_0209_000000000-J6M35
 ```
 
 Backup database (specify backup folder in config). This will create a backup database file in following format: backup_YYYY-MM-DD-HH-MM-SS.db
@@ -75,10 +75,9 @@ python illumina_uploader.py --config config.ini --sequencer miseq --dry-run
     - ~~watch directory~~
     - ~~Enhanced logging~~
     - ~~Capture Stdout and Stderr properly~~
-- v0.0.9
-    - Multiple folders upload unittests
-    - Generate update file from DB
-- v0.1   - MVP release
+- ~~v0.0.9~~
+    - ~~watch directory bugfix~~
+- v0.1   - Generate update file from DB
 - v0.2   - Email functionality
 - v0.3   - Web UI
 - v0.4   - Progress bar in UI using API

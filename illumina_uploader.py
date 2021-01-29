@@ -42,10 +42,9 @@ def main(args):
         exit(0)
 
     try:
-        logger.info("🧐 Start Watching Directory..")
+        logger.info("Start Watching Directory..")
         sleeptime = int(localInfo["sleeptime"])*60 #In Minutes
         while(True):
-            dbObject.watchDirectory(localInfo["inputdir"], folderRegex, localInfo["watchfilepath"])
             sshcommand = commands["sshwincommand"] if platform.system()=="Windows" else commands["sshnixcommand"]
             
             #Collect rsync command info
@@ -67,12 +66,13 @@ def main(args):
                 rsyncFolder(context, runargs)
                 break
             else:
+                dbObject.watchDirectory(localInfo["inputdir"], folderRegex, localInfo["watchfilepath"])
                 foldersToUpload = dbObject.getFolderList()
                 for rsyncfolder in foldersToUpload:
                     runargs["inFile"] = rsyncfolder[0]
                     rsyncFolder(context, runargs)
             
-            logger.info("😴 Sleeping for {0} seconds".format(sleeptime))
+            logger.info("Sleeping for {0} seconds".format(sleeptime))
             time.sleep(sleeptime)
     except KeyboardInterrupt as error:
             logger.info("Shutting down Directory Watch. Exiting.")
@@ -82,7 +82,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Scan for new folders in a directory on Illumina sequencer and upload to remote server.")
     parser.add_argument("--config", required=True, help="location of config file")
     parser.add_argument("--sequencer", required=True, help="miseq or nextseq")
-    parser.add_argument("--upload-single-run", help="location of single folder run to upload")
+    parser.add_argument("--upload-single-run", help="location of single folder run to upload (will not update db)")
     parser.add_argument("--pem-file", help="location of pem file")
     parser.add_argument("--create-db", action="store_true", help="initialise sqlite database")
     parser.add_argument("--backup-db", action="store_true", help="backup sqlite database")
