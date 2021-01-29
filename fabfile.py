@@ -35,6 +35,6 @@ def rsyncFolder(context, args):
         logger.info(error)
         logger.info("Exiting!")
     else:
-        logger.info("Please wait.. writing logfile (might take a while")
+        logger.info("Please wait.. writing logfile (might take a while)")
         formatStdout(result, logger)
         logger.info("Completed: rsync "+args["rsync"].format_map(args))
