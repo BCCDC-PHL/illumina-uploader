@@ -34,6 +34,14 @@ def formatStdout(result, logger):
     if result.return_code:
         logger.info(result.return_code)
 
+def create_update_file(filetype):
+    # 
+    pass
+
+def create_ignore_file(filetype):
+    # 
+    pass
+    
 class Database:
     '''
     Database class that handles all sqlite operations
@@ -143,3 +151,4 @@ class Database:
         backupDbFile = self.backups + "/backup_" + datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + ".db"
         copyfile(self.location, backupDbFile)
         self.logger.info("Database backup completed!")
+

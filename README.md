@@ -14,7 +14,8 @@ pip install -r requirements.txt
 ```
 
 ## Configuration
-The program uses standard python configuration file (.ini format) along with runtime arguments 
+The program uses standard python configuration file along with runtime arguments. 
+See [config.ini.template](config.ini.template) for format details.
 
 ## CLI Parameters
 Since the program is under active development, running arguments might change in future.
@@ -61,7 +62,7 @@ Dry run test
 python illumina_uploader.py --config config.ini --sequencer miseq --dry-run
 ```
 
-## Development by Versions
+## Changelog
 - ~~v0.0.1 - Test rsync command~~
 - ~~v0.0.2 - Finalize rsync command~~
 - ~~v0.0.3 - Test one folder from main script~~
@@ -75,9 +76,10 @@ python illumina_uploader.py --config config.ini --sequencer miseq --dry-run
     - ~~watch directory~~
     - ~~Enhanced logging~~
     - ~~Capture Stdout and Stderr properly~~
-- ~~v0.0.9~~
-    - ~~watch directory bugfix~~
-- v0.1   - Generate update file from DB
+- ~~v0.0.9 - watch directory bugfix~~
+- ~~v0.1~~
+     - ~~Generate update.txt and ignore.txt files~~
+     - ~~Generate .json file for each run directory~~
 - v0.2   - Email functionality
 - v0.3   - Web UI
 - v0.4   - Progress bar in UI using API
