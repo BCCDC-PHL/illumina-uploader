@@ -34,26 +34,29 @@ def formatStdout(result, logger):
     if result.return_code:
         logger.info(result.return_code)
 
-def create_update_file(filetype):
-    # 
-    pass
+def regenIgnoreList(inputDir):
+    ignoreList = []
+    ignoreFileLoc = inputDir+"ignore.txt"
+    if "ignore.txt" in os.listdir(inputDir):
+        with open(ignoreFileLoc) as fileio:
+            ignoreList = fileio.read().splitlines()
+    else:
+        open(ignoreFileLoc, "a").close()
+    return ignoreList
 
-def create_ignore_file(filetype):
-    # 
-    pass
-    
 class Database:
     '''
     Database class that handles all sqlite operations
     TODO replace with DjangoORM in future
     '''
-    def __init__(self, dbInfo, queries, logger):
+    def __init__(self, dbInfo, queries, logger, inputDir):
         self.location = os.path.join(os.path.dirname(__file__), dbInfo["location"])
         self.backups = os.path.join(os.path.dirname(__file__), dbInfo["backupfolder"])
         self.folderTable = dbInfo["foldertable"]
         self.connection = self.initConnection()
         self.queries = queries
         self.logger = logger
+        self.inputDir = inputDir
 
     def initConnection(self):
         return sqlite3.connect(self.location)
@@ -84,20 +87,13 @@ class Database:
             self.logger.info("No new folders to upload")
             return []
 
-    def prepFolders(self, inputdir, folderRegex, folderName):
+    def prepFolders(self, folderRegex, folderName):
         '''
         Check and add folders to db
         '''
         try:
-            if folderName:
-                if self._checkFolder(inputdir, folderRegex, folderName):
-                    self._insertFolders(folderName)
-                else:
-                    self.logger.error("Please check folder name {} and/or location {}".format(folderName, inputdir))
-                    exit(1)
-            else:
-                for subFolderName in self._checkFolders(inputdir, folderRegex):
-                    self._insertFolders(subFolderName)
+            if folderName and self._checkFolder(folderRegex, folderName):
+                self._insertFolders(folderName)
         except (sqlite3.OperationalError, OSError) as error:
             self.logger.error("Fatal error: {0}".format(error))
             exit(1)
@@ -116,33 +112,32 @@ class Database:
         else:
             self.logger.info("Folder Already Present {}".format(folderName))
 
-    def _checkFolder(self, inputdir, folderRegex, folderName):
+    def _checkFolder(self, folderRegex, folderName):
         '''
-        Internal function for checking if folder exists in directory
+        Internal function for checking if folder in ignore file or exists in directory 
         '''
-        for folder in os.listdir(inputdir):
+        if folderName in regenIgnoreList(self.inputDir):
+            self.logger.info("folder is in ignore list, and will not be added to db or uploaded")
+            return False
+        for folder in os.listdir(self.inputDir):
             if re.match(folderRegex, folder) and folderName==folder:
                 return True
+        self.logger.error("Please check folder name {} and/or location {}".format(folderName, self.inputDir))
         return False
 
-    def _checkFolders(self, inputdir, folderRegex):
-        '''
-        Internal function that returns folder iterable
-        '''
-        for folder in os.listdir(inputdir):
-            if re.match(folderRegex, folder):
-                yield folder
-
-    def watchDirectory(self, inputdir, folderRegex, watchFile):
+    def watchDirectory(self, folderRegex, watchFile):
         '''
         Check for watch file and prep folder if matched
         '''
-        for folder in os.listdir(inputdir):
+        for folder in os.listdir(self.inputDir):
+            #Check if regex matches directory name
             if re.match(folderRegex, folder):
-                for subFolder in os.listdir(inputdir+folder):
+                #Enumerate subfolders in directory
+                for subFolder in os.listdir(self.inputDir+folder):
+                    #Check if any subfolders matches watchfile from config
                     if subFolder == watchFile:
                         self.logger.info("Adding {0} to DB".format(folder))
-                        self.prepFolders(inputdir, folderRegex, folder)
+                        self.prepFolders(folderRegex, folder)
 
     def backupDb(self):
         '''

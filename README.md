@@ -86,4 +86,12 @@ python illumina_uploader.py --config config.ini --sequencer miseq --dry-run
 - v0.5   - Advanced Data Integrity checks
 - v0.4   - Installer
 - v1.0   - First Release
- 
+
+## Troubleshooting
+Problem: `$'\r': command not found`
+
+Solution: Add at the end of `~/.bash_profile` (in /home/USER):
+```
+export SHELLOPTS
+set -o igncr
+```

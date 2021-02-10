@@ -33,7 +33,7 @@ def main(args):
     #Database Operations
     dbInfo = configObject["DB"]
     sqlInfo = configObject["SQL"]
-    dbObject = Database(dbInfo, sqlInfo, logger)
+    dbObject = Database(dbInfo, sqlInfo, logger, localInfo["inputdir"])
     if args.create_db:
         dbObject.createDb()
         exit(0)
@@ -66,7 +66,7 @@ def main(args):
                 rsyncFolder(context, runargs)
                 break
             else:
-                dbObject.watchDirectory(localInfo["inputdir"], folderRegex, localInfo["watchfilepath"])
+                dbObject.watchDirectory(folderRegex, localInfo["watchfilepath"])
                 foldersToUpload = dbObject.getFolderList()
                 for rsyncfolder in foldersToUpload:
                     runargs["inFile"] = rsyncfolder[0]
