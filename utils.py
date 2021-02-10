@@ -74,12 +74,20 @@ class Database:
         self.closeConnection()
         self.logger.info("Database initialised!")
 
+    def backupDb(self):
+        '''
+        Backup database file (specified in config)
+        '''
+        backupDbFile = self.backups + "/backup_" + datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + ".db"
+        copyfile(self.location, backupDbFile)
+        self.logger.info("Database backup completed!")
+    
     def getFolderList(self):
         '''
         Get list of folders from db that need uploading
         '''
         c = self.connection.cursor()
-        c.execute(self.queries["getfolderstoupload"].format(self.folderTable, "UPLOADED"))
+        c.execute(self.queries["getfolderstoupload"].format("folder" ,self.folderTable, "UPLOADED"))
         result = c.fetchall()
         if result:
             return result
@@ -106,7 +114,7 @@ class Database:
         c.execute(self.queries["checkfolderpresence"].format(self.folderTable, folderName))
         if c.fetchone() is None:
             self.logger.info("Inserting Folder {}".format(folderName))
-            currenttime = datetime.now().strftime("%d-%b-%Y (%H:%M:%S.%f)")
+            currenttime = datetime.now().strftime("%d-%b-%Y (%H:%M:%S.%f)") #TODO make this pythonic
             c.execute(self.queries["insertfolder"].format(self.folderTable, folderName, "CREATED", currenttime))
             self.connection.commit()
         else:
@@ -117,7 +125,7 @@ class Database:
         Internal function for checking if folder in ignore file or exists in directory 
         '''
         if folderName in regenIgnoreList(self.inputDir):
-            self.logger.info("folder is in ignore list, and will not be added to db or uploaded")
+            self.logger.info("{0} in ignore list, will not be added to db or uploaded".format(folderName))
             return False
         for folder in os.listdir(self.inputDir):
             if re.match(folderRegex, folder) and folderName==folder:
@@ -139,11 +147,11 @@ class Database:
                         self.logger.info("Adding {0} to DB".format(folder))
                         self.prepFolders(folderRegex, folder)
 
-    def backupDb(self):
+    def markAsUploaded(self, folderName):
         '''
-        Backup database file (specified in config)
+        Mark folder as UPLOADED in db
         '''
-        backupDbFile = self.backups + "/backup_" + datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + ".db"
-        copyfile(self.location, backupDbFile)
-        self.logger.info("Database backup completed!")
-
+        c = self.connection.cursor()
+        c.execute(self.queries["markasuploaded"].format(self.folderTable, "UPLOADED", folderName))
+        self.connection.commit()
+        self.logger.info("Folder {0} marked in DB as UPLOADED".format(folderName))

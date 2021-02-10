@@ -64,14 +64,16 @@ def main(args):
             if args.upload_single_run:
                 runargs["inFile"] = args.upload_single_run
                 rsyncFolder(context, runargs)
+                #Add to ignore list since its on off run
                 break
             else:
                 dbObject.watchDirectory(folderRegex, localInfo["watchfilepath"])
                 foldersToUpload = dbObject.getFolderList()
-                for rsyncfolder in foldersToUpload:
-                    runargs["inFile"] = rsyncfolder[0]
+                for folderName in foldersToUpload:
+                    runargs["inFile"] = folderName[0]
                     rsyncFolder(context, runargs)
-            
+                    dbObject.markAsUploaded(folderName[0])
+
             logger.info("Sleeping for {0} seconds".format(sleeptime))
             time.sleep(sleeptime)
     except KeyboardInterrupt as error:

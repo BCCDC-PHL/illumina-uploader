@@ -80,12 +80,16 @@ python illumina_uploader.py --config config.ini --sequencer miseq --dry-run
 - ~~v0.1~~
      - ~~Generate update.txt and ignore.txt files~~
      - ~~Generate .json file for each run directory~~
-- v0.2   - Email functionality
-- v0.3   - Web UI
-- v0.4   - Progress bar in UI using API
-- v0.5   - Advanced Data Integrity checks
-- v0.4   - Installer
-- v1.0   - First Release
+     - ~~Generate COPY_COMPLETE file for each run directory~~
+- v0.2   - Email functionality using mail folder
+- v0.3   - Web UI using flask/django
+- v0.4   - Email run instrument errors (Can be done on cloud?)
+- v0.5   - Upload to IRIDA for full analysis. Get IRIDA project number from samplesheet. Check sequdas code.
+- v0.6   - QC metrics (separate MultiQC and Kraken summery screens)
+- v0.7   - Advanced Data integrity check
+- v0.8   - Installer and one script run
+- v0.9   - Progress bar in UI using API
+- v1.0   - First Release Freeze, no new features
 
 ## Troubleshooting
 Problem: `$'\r': command not found`
@@ -95,3 +99,11 @@ Solution: Add at the end of `~/.bash_profile` (in /home/USER):
 export SHELLOPTS
 set -o igncr
 ```
+
+Problem: `Error: dup() in/out/err failed`
+
+Solution: Install ssh/rsync from cygwin installer. Don't use system ones.
+
+Problem: How to run SQL statements in SQLITE EXPLORER in VSCode?
+
+Solution: Ctrl + Shift + Q
