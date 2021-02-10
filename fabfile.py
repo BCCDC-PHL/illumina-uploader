@@ -28,7 +28,7 @@ def rsyncFolder(context, args):
     '''
     logger = args["logger"]
     try:
-        logger.info("Running: rsync "+args["rsync"].format_map(args))
+        #logger.info("Running: rsync "+args["rsync"].format_map(args))
         result = context.run("rsync "+args["rsync"].format_map(args))
     except UnexpectedExit as error:
         logger.info("Interrupted!")
@@ -37,4 +37,4 @@ def rsyncFolder(context, args):
     else:
         logger.info("Please wait.. writing logfile (might take a while)")
         formatStdout(result, logger)
-        logger.info("Completed: rsync "+args["rsync"].format_map(args))
+        #logger.info("Completed: rsync "+args["rsync"].format_map(args))

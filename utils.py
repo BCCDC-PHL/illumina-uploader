@@ -42,7 +42,14 @@ def regenIgnoreList(inputDir):
             ignoreList = fileio.read().splitlines()
     else:
         open(ignoreFileLoc, "a").close()
+    ignoreList = list(filter(None, ignoreList)) #remove emplty lines
+    ignoreList = list(set(ignoreList)) #remove duplicate lines
     return ignoreList
+
+def addToList(inputDir, folderName, listType):
+    ignoreFileLoc = inputDir+listType
+    with open(ignoreFileLoc, "a") as fileio:
+        fileio.write("\n"+folderName)
 
 class Database:
     '''
@@ -138,12 +145,9 @@ class Database:
         Check for watch file and prep folder if matched
         '''
         for folder in os.listdir(self.inputDir):
-            #Check if regex matches directory name
-            if re.match(folderRegex, folder):
-                #Enumerate subfolders in directory
-                for subFolder in os.listdir(self.inputDir+folder):
-                    #Check if any subfolders matches watchfile from config
-                    if subFolder == watchFile:
+            if re.match(folderRegex, folder): #Check if regex matches directory name
+                for subFolder in os.listdir(self.inputDir+folder): #Enumerate subfolders in directory
+                    if subFolder == watchFile: #Check if any subfolders matches watchfile from config
                         self.logger.info("Adding {0} to DB".format(folder))
                         self.prepFolders(folderRegex, folder)
 

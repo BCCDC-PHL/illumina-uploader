@@ -3,7 +3,7 @@ import argparse, platform, sqlite3, time
 from fabfile import rsyncFolder, checkupSystemUptime
 from invoke.context import Context
 from configparser import ConfigParser
-from utils import Database, setupLogger
+from utils import Database, setupLogger, addToList, regenIgnoreList
 
 def main(args):
     '''
@@ -42,8 +42,6 @@ def main(args):
         exit(0)
 
     try:
-        logger.info("Start Watching Directory..")
-        sleeptime = int(localInfo["sleeptime"])*60 #In Minutes
         while(True):
             sshcommand = commands["sshwincommand"] if platform.system()=="Windows" else commands["sshnixcommand"]
             
@@ -62,20 +60,25 @@ def main(args):
 
             #Call rsync
             if args.upload_single_run:
+                logger.info("Start One-off run for single directory {0}".format(args.upload_single_run))
                 runargs["inFile"] = args.upload_single_run
                 rsyncFolder(context, runargs)
-                #Add to ignore list since its on off run
+                addToList(localInfo["inputdir"], args.upload_single_run, "ignore.txt")
+                logger.info("Folder {0} added to ignore list".format(args.upload_single_run))
+                #logger.info("regenIgnoreList:",regenIgnoreList(localInfo["inputdir"]))
                 break
             else:
+                logger.info("Start Watching Directory..")
                 dbObject.watchDirectory(folderRegex, localInfo["watchfilepath"])
                 foldersToUpload = dbObject.getFolderList()
                 for folderName in foldersToUpload:
                     runargs["inFile"] = folderName[0]
                     rsyncFolder(context, runargs)
                     dbObject.markAsUploaded(folderName[0])
-
-            logger.info("Sleeping for {0} seconds".format(sleeptime))
-            time.sleep(sleeptime)
+            #Goto sleep (displayed in minutes)
+            logger.info("Sleeping for {0} minutes".format(localInfo["sleeptime"]))
+            sleeptimeInSeconds = int(localInfo["sleeptime"])*60
+            time.sleep(sleeptimeInSeconds)
     except KeyboardInterrupt as error:
             logger.info("Shutting down Directory Watch. Exiting.")
     
