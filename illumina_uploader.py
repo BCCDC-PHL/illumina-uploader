@@ -3,7 +3,8 @@ import argparse, platform, sqlite3, time
 from fabfile import rsyncFolder, checkupSystemUptime
 from invoke.context import Context
 from configparser import ConfigParser
-from utils import Database, setupLogger, addToList, regenIgnoreList
+from utils import setupLogger, addToList
+from database import Database
 
 def main(args):
     '''
@@ -33,7 +34,7 @@ def main(args):
     #Database Operations
     dbInfo = configObject["DB"]
     sqlInfo = configObject["SQL"]
-    dbObject = Database(dbInfo, sqlInfo, logger, localInfo["inputdir"])
+    dbObject = Database(dbInfo, sqlInfo, logger, localInfo["inputdir"], folderRegex)
     if args.create_db:
         dbObject.createDb()
         exit(0)
@@ -44,7 +45,6 @@ def main(args):
     try:
         while(True):
             sshcommand = commands["sshwincommand"] if platform.system()=="Windows" else commands["sshnixcommand"]
-            
             #Collect rsync command info
             runargs = {
                 "pem": serverInfo["pemfile"],
@@ -57,7 +57,6 @@ def main(args):
                 "sshcommand":sshcommand,
                 "logger":logger,
             }
-
             #Call rsync
             if args.upload_single_run:
                 logger.info("Start One-off run for single directory {0}".format(args.upload_single_run))
@@ -88,7 +87,6 @@ if __name__ == "__main__":
     parser.add_argument("--config", required=True, help="location of config file")
     parser.add_argument("--sequencer", required=True, help="miseq or nextseq")
     parser.add_argument("--upload-single-run", help="location of single folder run to upload (will not update db)")
-    parser.add_argument("--pem-file", help="location of pem file")
     parser.add_argument("--create-db", action="store_true", help="initialise sqlite database")
     parser.add_argument("--backup-db", action="store_true", help="backup sqlite database")
     parser.add_argument("--dry-run", action="store_true", help="mock upload testing without uploading anything")

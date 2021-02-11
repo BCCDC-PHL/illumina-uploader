@@ -38,3 +38,16 @@ def rsyncFolder(context, args):
         logger.info("Please wait.. writing logfile (might take a while)")
         formatStdout(result, logger)
         #logger.info("Completed: rsync "+args["rsync"].format_map(args))
+
+def putCopyCompleteFile(context, args):
+    #COPY_COMPLETE
+    pass
+
+def putRunErrorFile(context, args):
+    #RUN_ERROR
+    pass
+
+def putJsonFile(context, args):
+    #RUN_ERROR
+    # 6 sec:  find . -xdev -type f -print0 | LC_COLLATE=C sort -z | xargs -0 tail -qc100 | md5sum -
+    pass
