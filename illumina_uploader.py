@@ -49,13 +49,14 @@ def main(args):
             runargs = {
                 "pem": serverInfo["pemfile"],
                 "host": serverInfo["host"],
-                "login":serverInfo["loginid"],
-                "outDir":serverInfo["outputdir"],
-                "inDir":localInfo["inputdir"],
-                "chmod":commands["chmodcommand"],
-                "rsync":commands["rsynccommand"],
-                "sshcommand":sshcommand,
-                "logger":logger,
+                "login": serverInfo["loginid"],
+                "outDir": serverInfo["outputdir"],
+                "inDir": localInfo["inputdir"],
+                "chmod": commands["chmodcommand"],
+                "rsync": commands["rsynccommand"],
+                "sshcommand": sshcommand,
+                "logger": logger,
+                "debug": True if args.debug else False
             }
             #Call rsync
             if args.upload_single_run:
@@ -74,6 +75,7 @@ def main(args):
                     runargs["inFile"] = folderName[0]
                     rsyncFolder(context, runargs)
                     dbObject.markAsUploaded(folderName[0])
+                    putMailFile(context, runargs)
             #Goto sleep (displayed in minutes)
             logger.info("Sleeping for {0} minutes".format(localInfo["sleeptime"]))
             sleeptimeInSeconds = int(localInfo["sleeptime"])*60
@@ -90,5 +92,6 @@ if __name__ == "__main__":
     parser.add_argument("--create-db", action="store_true", help="initialise sqlite database")
     parser.add_argument("--backup-db", action="store_true", help="backup sqlite database")
     parser.add_argument("--dry-run", action="store_true", help="mock upload testing without uploading anything")
+    parser.add_argument("--debug", action="store_true", help="print debug data that should aid in problem solving")
     args = parser.parse_args()
     main(args)

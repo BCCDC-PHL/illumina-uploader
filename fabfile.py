@@ -39,15 +39,33 @@ def rsyncFolder(context, args):
         formatStdout(result, logger)
         #logger.info("Completed: rsync "+args["rsync"].format_map(args))
 
+@task
 def putCopyCompleteFile(context, args):
-    #COPY_COMPLETE
-    pass
+    #COPY_COMPLETE.txt with time stamp
+    logger = args["logger"]
+    try:
+        logger.info("Running: touch COPY_COMPLETE.TXT")
+        result = context.run("touch COPY_COMPLETE.TXT")
+    except UnexpectedExit as error:
+        logger.info("Interrupted!")
+        logger.info(error)
+        logger.info("Exiting!")
+    else:
+        formatStdout(result, logger)
+        logger.info("Completed: touch COPY_COMPLETE.TXT")
 
-def putRunErrorFile(context, args):
-    #RUN_ERROR
-    pass
-
-def putJsonFile(context, args):
+@task
+def putMailFile(context, args):
     #RUN_ERROR
     # 6 sec:  find . -xdev -type f -print0 | LC_COLLATE=C sort -z | xargs -0 tail -qc100 | md5sum -
-    pass
+    logger = args["logger"]
+    try:
+        logger.info("Running: mkdir Mail")
+        result = context.run("mkdir Mail")
+    except UnexpectedExit as error:
+        logger.info("Interrupted!")
+        logger.info(error)
+        logger.info("Exiting!")
+    else:
+        formatStdout(result, logger)
+        logger.info("Completed: mkdir Mail")
