@@ -1,0 +1,31 @@
+[SERVER]
+host = hostname.bcgsc.ca
+pemfile = /path/to/hostname.pem
+loginid = firstname.lastname
+outputdir = /path/to/remote/output/directory/
+
+[LOCAL]
+inputdir = /path/to/local/input/directory/
+folderregexmiseq = \d{6}_[A-Z0-9]{6}_\d{4}_\d{9}-[A-Z0-9]{5}$
+folderregexnextseq = \d{6}_[A-Z0-9]{7}_\d{?}_[A-Z0-9]{9}$
+watchfilepath = Basecalling_Netcopy_complete.txt
+logfile = logfile.log
+sleeptime = 1
+
+[COMMANDS]
+rsynccommand = -artvh -p -e "{sshcommand} -i {pem}" {chmod} {inDir}{inFile} {login}@{host}:{outDir}
+rsyncquietcommand = -artvh -q -p -e "{sshcommand} -i {pem}" {chmod} {inDir}{inFile} {login}@{host}:{outDir}
+sshnixcommand = ssh
+sshwincommand = /usr/bin/ssh
+chmodcommand = --chmod=Du=rwx,Dg=rx,Fu=rw,Fg=r,o=
+
+[DB]
+location = local.db
+backupfolder = backups
+foldertable = folderinfo
+
+[SQL]
+createtable = CREATE TABLE {} (folder text, status text, querylastrun text);
+checkfolderpresence = SELECT * FROM {} WHERE folder='{}';
+insertfolder = INSERT INTO {} VALUES ('{}','{}','{}');
+getfolderstoupload = SELECT folder FROM {} WHERE status<>'{}';

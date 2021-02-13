@@ -1,7 +1,5 @@
-import sqlite3, os, re, logging, sys
+import os, logging, sys
 from logging.handlers import RotatingFileHandler
-from datetime import datetime
-from shutil import copyfile
 
 def setupLogger(logFile, maxBytes=5000, backupCount=5):
     '''
@@ -34,112 +32,29 @@ def formatStdout(result, logger):
     if result.return_code:
         logger.info(result.return_code)
 
-class Database:
-    '''
-    Database class that handles all sqlite operations
-    TODO replace with DjangoORM in future
-    '''
-    def __init__(self, dbInfo, queries, logger):
-        self.location = os.path.join(os.path.dirname(__file__), dbInfo["location"])
-        self.backups = os.path.join(os.path.dirname(__file__), dbInfo["backupfolder"])
-        self.folderTable = dbInfo["foldertable"]
-        self.connection = self.initConnection()
-        self.queries = queries
-        self.logger = logger
+def regenIgnoreList(inputDir):
+    ignoreList = []
+    ignoreFileLoc = inputDir+"ignore.txt"
+    if "ignore.txt" in os.listdir(inputDir):
+        with open(ignoreFileLoc) as fileio:
+            ignoreList = fileio.read().splitlines()
+    else:
+        open(ignoreFileLoc, "a").close()
+    #TODO make more efficient
+    ignoreList = list(filter(None, ignoreList)) #remove emplty lines
+    ignoreList = list(set(ignoreList)) #remove duplicate lines
+    return ignoreList
 
-    def initConnection(self):
-        return sqlite3.connect(self.location)
+def genUpdateList(outputDir):
+    pass
 
-    def closeConnection(self):
-        return self.connection.close()
-    
-    def createDb(self):
-        '''
-        Create new sqlite instance
-        '''
-        c = self.connection.cursor()
-        c.execute(self.queries["createtable"].format(self.folderTable))
-        self.connection.commit()
-        self.closeConnection()
-        self.logger.info("Database initialised!")
+def putCompletedFile(inputDir):
+    pass
 
-    def getFolderList(self):
-        '''
-        Get list of folders from db that need uploading
-        '''
-        c = self.connection.cursor()
-        c.execute(self.queries["getfolderstoupload"].format(self.folderTable, "UPLOADED"))
-        result = c.fetchall()
-        if result:
-            return result
-        else:
-            self.logger.info("No new folders to upload")
-            return []
+def generateJson(inputDir):
+    pass
 
-    def prepFolders(self, inputdir, folderRegex, folderName):
-        '''
-        Check and add folders to db
-        '''
-        try:
-            if folderName:
-                if self._checkFolder(inputdir, folderRegex, folderName):
-                    self._insertFolders(folderName)
-                else:
-                    self.logger.error("Please check folder name {} and/or location {}".format(folderName, inputdir))
-                    exit(1)
-            else:
-                for subFolderName in self._checkFolders(inputdir, folderRegex):
-                    self._insertFolders(subFolderName)
-        except (sqlite3.OperationalError, OSError) as error:
-            self.logger.error("Fatal error: {0}".format(error))
-            exit(1)
-
-    def _insertFolders(self, folderName):
-        '''
-        Internal function for inserting folder data into db
-        '''
-        c = self.connection.cursor()
-        c.execute(self.queries["checkfolderpresence"].format(self.folderTable, folderName))
-        if c.fetchone() is None:
-            self.logger.info("Inserting Folder {}".format(folderName))
-            currenttime = datetime.now().strftime("%d-%b-%Y (%H:%M:%S.%f)")
-            c.execute(self.queries["insertfolder"].format(self.folderTable, folderName, "CREATED", currenttime))
-            self.connection.commit()
-        else:
-            self.logger.info("Folder Already Present {}".format(folderName))
-
-    def _checkFolder(self, inputdir, folderRegex, folderName):
-        '''
-        Internal function for checking if folder exists in directory
-        '''
-        for folder in os.listdir(inputdir):
-            if re.match(folderRegex, folder) and folderName==folder:
-                return True
-        return False
-
-    def _checkFolders(self, inputdir, folderRegex):
-        '''
-        Internal function that returns folder iterable
-        '''
-        for folder in os.listdir(inputdir):
-            if re.match(folderRegex, folder):
-                yield folder
-
-    def watchDirectory(self, inputdir, folderRegex, watchFile):
-        '''
-        Check for watch file and prep folder if matched
-        '''
-        for folder in os.listdir(inputdir):
-            if re.match(folderRegex, folder):
-                for subFolder in os.listdir(inputdir+folder):
-                    if subFolder == watchFile:
-                        self.logger.info("Adding {0} to DB".format(folder))
-                        self.prepFolders(inputdir, folderRegex, folder)
-
-    def backupDb(self):
-        '''
-        Backup database file (specified in config)
-        '''
-        backupDbFile = self.backups + "/backup_" + datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + ".db"
-        copyfile(self.location, backupDbFile)
-        self.logger.info("Database backup completed!")
+def addToList(inputDir, folderName, listType):
+    fileLoc = inputDir+listType
+    with open(fileLoc, "a") as fileio:
+        fileio.write("\n"+folderName)

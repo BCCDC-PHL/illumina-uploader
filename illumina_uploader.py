@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 import argparse, platform, sqlite3, time
-from fabfile import rsyncFolder, checkupSystemUptime
+from fabfile import rsyncFolder, checkupSystemUptime, scpCopyCompleteFile
 from invoke.context import Context
 from configparser import ConfigParser
-from utils import Database, setupLogger
+from utils import setupLogger, addToList
+from database import Database
 
 def main(args):
     '''
@@ -33,7 +34,7 @@ def main(args):
     #Database Operations
     dbInfo = configObject["DB"]
     sqlInfo = configObject["SQL"]
-    dbObject = Database(dbInfo, sqlInfo, logger)
+    dbObject = Database(dbInfo, sqlInfo, logger, localInfo["inputdir"], folderRegex)
     if args.create_db:
         dbObject.createDb()
         exit(0)
@@ -42,38 +43,44 @@ def main(args):
         exit(0)
 
     try:
-        logger.info("Start Watching Directory..")
-        sleeptime = int(localInfo["sleeptime"])*60 #In Minutes
         while(True):
-            sshcommand = commands["sshwincommand"] if platform.system()=="Windows" else commands["sshnixcommand"]
-            
+            sshformat = commands["sshwincommand"] if platform.system()=="Windows" else commands["sshnixcommand"]
             #Collect rsync command info
             runargs = {
                 "pem": serverInfo["pemfile"],
                 "host": serverInfo["host"],
-                "login":serverInfo["loginid"],
-                "outDir":serverInfo["outputdir"],
-                "inDir":localInfo["inputdir"],
-                "chmod":commands["chmodcommand"],
-                "rsync":commands["rsynccommand"],
-                "sshcommand":sshcommand,
-                "logger":logger,
+                "login": serverInfo["loginid"],
+                "outDir": serverInfo["outputdir"],
+                "inDir": localInfo["inputdir"],
+                "chmod": commands["chmodcommand"],
+                "rsync": commands["rsynccommand"],
+                "sshformat": sshformat,
+                "scp": commands["scpcommand"],
+                "logger": logger,
+                "debug": True if args.debug else False
             }
-
             #Call rsync
             if args.upload_single_run:
+                logger.info("Start One-off run for single directory {0}".format(args.upload_single_run))
                 runargs["inFile"] = args.upload_single_run
                 rsyncFolder(context, runargs)
+                addToList(localInfo["inputdir"], args.upload_single_run, "ignore.txt")
+                logger.info("Folder {0} added to ignore list".format(args.upload_single_run))
+                if args.debug: logger.info("regenIgnoreList:",regenIgnoreList(localInfo["inputdir"]))
                 break
             else:
-                dbObject.watchDirectory(localInfo["inputdir"], folderRegex, localInfo["watchfilepath"])
+                logger.info("Start Watching Directory..")
+                dbObject.watchDirectory(folderRegex, localInfo["watchfilepath"])
                 foldersToUpload = dbObject.getFolderList()
-                for rsyncfolder in foldersToUpload:
-                    runargs["inFile"] = rsyncfolder[0]
+                for folderName in foldersToUpload:
+                    runargs["inFile"] = folderName[0]
                     rsyncFolder(context, runargs)
-            
-            logger.info("Sleeping for {0} seconds".format(sleeptime))
-            time.sleep(sleeptime)
+                    scpCopyCompleteFile(context, runargs)
+                    dbObject.markAsUploaded(folderName[0])
+            #Goto sleep (displayed in minutes)
+            logger.info("Sleeping for {0} minutes".format(localInfo["sleeptime"]))
+            sleeptimeInSeconds = int(localInfo["sleeptime"])*60
+            time.sleep(sleeptimeInSeconds)
     except KeyboardInterrupt as error:
             logger.info("Shutting down Directory Watch. Exiting.")
     
@@ -83,9 +90,9 @@ if __name__ == "__main__":
     parser.add_argument("--config", required=True, help="location of config file")
     parser.add_argument("--sequencer", required=True, help="miseq or nextseq")
     parser.add_argument("--upload-single-run", help="location of single folder run to upload (will not update db)")
-    parser.add_argument("--pem-file", help="location of pem file")
     parser.add_argument("--create-db", action="store_true", help="initialise sqlite database")
     parser.add_argument("--backup-db", action="store_true", help="backup sqlite database")
     parser.add_argument("--dry-run", action="store_true", help="mock upload testing without uploading anything")
+    parser.add_argument("--debug", action="store_true", help="print debug data that should aid in problem solving")
     args = parser.parse_args()
     main(args)

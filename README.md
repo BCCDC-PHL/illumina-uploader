@@ -14,7 +14,8 @@ pip install -r requirements.txt
 ```
 
 ## Configuration
-The program uses standard python configuration file (.ini format) along with runtime arguments 
+The program uses standard python configuration file along with runtime arguments. 
+See [config.ini.template](config.ini.template) for format details.
 
 ## CLI Parameters
 Since the program is under active development, running arguments might change in future.
@@ -61,7 +62,7 @@ Dry run test
 python illumina_uploader.py --config config.ini --sequencer miseq --dry-run
 ```
 
-## Development by Versions
+## Changelog
 - ~~v0.0.1 - Test rsync command~~
 - ~~v0.0.2 - Finalize rsync command~~
 - ~~v0.0.3 - Test one folder from main script~~
@@ -75,13 +76,35 @@ python illumina_uploader.py --config config.ini --sequencer miseq --dry-run
     - ~~watch directory~~
     - ~~Enhanced logging~~
     - ~~Capture Stdout and Stderr properly~~
-- ~~v0.0.9~~
-    - ~~watch directory bugfix~~
-- v0.1   - Generate update file from DB
-- v0.2   - Email functionality
-- v0.3   - Web UI
-- v0.4   - Progress bar in UI using API
-- v0.5   - Advanced Data Integrity checks
-- v0.4   - Installer
-- v1.0   - First Release
- 
+- ~~v0.0.9 - watch directory bugfix~~
+- ~~v0.1~~
+     - ~~Generate update.txt and ignore.txt files~~
+     - ~~Generate .json file for each run directory~~
+     - ~~Generate COPY_COMPLETE file for each run directory~~
+- v0.2
+     - Email functionality through plover using mail folder
+     - JSON status file: file status, checksum, num_files, timestamp
+     - run instrument error files send via email
+- v0.3   - Web UI using flask/django
+- v0.4   - Upload to IRIDA for full analysis. Get IRIDA project number from samplesheet. Check sequdas code.
+- v0.5   - Advanced Data integrity check
+- v0.6   - Installer and one script run
+- v0.7   - Progress bar in UI using API
+- v1.0   - First Release Freeze, no new features
+
+## Troubleshooting
+Problem: `$'\r': command not found`
+
+Solution: Add at the end of `~/.bash_profile` (in /home/USER):
+```
+export SHELLOPTS
+set -o igncr
+```
+
+Problem: `Error: dup() in/out/err failed`
+
+Solution: Install ssh/rsync from cygwin installer. Don't use system ones.
+
+Problem: How to run SQL statements in SQLITE EXPLORER in VSCode?
+
+Solution: Ctrl + Shift + Q
