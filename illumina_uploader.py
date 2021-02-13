@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import argparse, platform, sqlite3, time
-from fabfile import rsyncFolder, checkupSystemUptime
+from fabfile import rsyncFolder, checkupSystemUptime, scpCopyCompleteFile
 from invoke.context import Context
 from configparser import ConfigParser
 from utils import setupLogger, addToList
@@ -44,7 +44,7 @@ def main(args):
 
     try:
         while(True):
-            sshcommand = commands["sshwincommand"] if platform.system()=="Windows" else commands["sshnixcommand"]
+            sshformat = commands["sshwincommand"] if platform.system()=="Windows" else commands["sshnixcommand"]
             #Collect rsync command info
             runargs = {
                 "pem": serverInfo["pemfile"],
@@ -54,7 +54,8 @@ def main(args):
                 "inDir": localInfo["inputdir"],
                 "chmod": commands["chmodcommand"],
                 "rsync": commands["rsynccommand"],
-                "sshcommand": sshcommand,
+                "sshformat": sshformat,
+                "scp": commands["scpcommand"],
                 "logger": logger,
                 "debug": True if args.debug else False
             }
@@ -65,7 +66,7 @@ def main(args):
                 rsyncFolder(context, runargs)
                 addToList(localInfo["inputdir"], args.upload_single_run, "ignore.txt")
                 logger.info("Folder {0} added to ignore list".format(args.upload_single_run))
-                #logger.info("regenIgnoreList:",regenIgnoreList(localInfo["inputdir"]))
+                if args.debug: logger.info("regenIgnoreList:",regenIgnoreList(localInfo["inputdir"]))
                 break
             else:
                 logger.info("Start Watching Directory..")
@@ -74,8 +75,8 @@ def main(args):
                 for folderName in foldersToUpload:
                     runargs["inFile"] = folderName[0]
                     rsyncFolder(context, runargs)
+                    scpCopyCompleteFile(context, runargs)
                     dbObject.markAsUploaded(folderName[0])
-                    putMailFile(context, runargs)
             #Goto sleep (displayed in minutes)
             logger.info("Sleeping for {0} minutes".format(localInfo["sleeptime"]))
             sleeptimeInSeconds = int(localInfo["sleeptime"])*60

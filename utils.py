@@ -1,7 +1,5 @@
-import sqlite3, os, re, logging, sys
+import os, logging, sys
 from logging.handlers import RotatingFileHandler
-from datetime import datetime
-from shutil import copyfile
 
 def setupLogger(logFile, maxBytes=5000, backupCount=5):
     '''

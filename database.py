@@ -1,5 +1,7 @@
 import sqlite3, os, re, logging, sys
 from utils import regenIgnoreList
+from datetime import datetime
+from shutil import copyfile
 
 class Database:
     '''
@@ -36,7 +38,7 @@ class Database:
         '''
         Backup database file (specified in config)
         '''
-        backupDbFile = self.backups + "/backup_" + datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + ".db"
+        backupDbFile = F"{self.backups}/backup_{datetime.now():%Y_%m_%d_%H_%M_%S}.db"
         copyfile(self.location, backupDbFile)
         self.logger.info("Database backup completed!")
     
@@ -72,7 +74,7 @@ class Database:
         c.execute(self.queries["checkfolderpresence"].format(self.folderTable, folderName))
         if c.fetchone() is None:
             self.logger.info("Inserting Folder {}".format(folderName))
-            currenttime = datetime.now().strftime("%d-%b-%Y (%H:%M:%S.%f)") #TODO make this pythonic
+            currenttime = F"{datetime.now():%Y-%m-%d %H:%M:%S}"
             c.execute(self.queries["insertfolder"].format(self.folderTable, folderName, "CREATED", currenttime))
             self.connection.commit()
         else:
