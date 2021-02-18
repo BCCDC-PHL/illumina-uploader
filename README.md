@@ -79,18 +79,20 @@ python illumina_uploader.py --config config.ini --sequencer miseq --dry-run
 - ~~v0.0.9 - watch directory bugfix~~
 - ~~v0.1~~
      - ~~Generate update.txt and ignore.txt files~~
-     - ~~Generate .json file for each run directory~~
      - ~~Generate COPY_COMPLETE file for each run directory~~
 - v0.2
-     - Email functionality through plover using mail folder
+     - output mail folder in remote server
+     - simplified run script
+- v0.3
      - JSON status file: file status, checksum, num_files, timestamp
      - run instrument error files send via email
-- v0.3   - Web UI using flask/django
-- v0.4   - Upload to IRIDA for full analysis. Get IRIDA project number from samplesheet. Check sequdas code.
-- v0.5   - Advanced Data integrity check
-- v0.6   - Installer and one script run
-- v0.7   - Progress bar in UI using API
-- v1.0   - First Release Freeze, no new features
+- v0.4   - Web UI using flask/django
+- v0.5   - Upload to IRIDA for full analysis. Get IRIDA project number from samplesheet. Check sequdas code.
+- v0.6   - Advanced Data integrity check
+- v0.7   - Installer and one script run
+- v0.8   - Progress bar in UI using API
+- v0.9
+- v1.0   - Long Term Release Freeze, no new features, only bugfixes
 
 ## Troubleshooting
 Problem: `$'\r': command not found`
