@@ -22,8 +22,8 @@ Since the program is under active development, running arguments might change in
 
 | Parameter            | Required? | Description |
 | -------------------- | --------- | ----------- |
-| `--config`           | YES       | location of config file |
-| `--sequencer`        | YES       | miseq or nextseq |
+| `--sequencer`        | NO       | miseq or nextseq (Default taken from config file) |
+| `--config`           | NO       | location of config file |
 | `--upload-single-run`| NO        | location of single folder to upload |
 | `--pem-file`         | NO        | location of pem file |
 | `--create-db`        | NO        | initialise sqlite database |
@@ -80,19 +80,17 @@ python illumina_uploader.py --config config.ini --sequencer miseq --dry-run
 - ~~v0.1~~
      - ~~Generate update.txt and ignore.txt files~~
      - ~~Generate COPY_COMPLETE file for each run directory~~
-- v0.2
-     - output mail folder in remote server
-     - simplified run script
-- v0.3
-     - JSON status file: file status, checksum, num_files, timestamp
-     - run instrument error files send via email
-- v0.4   - Web UI using flask/django
-- v0.5   - Upload to IRIDA for full analysis. Get IRIDA project number from samplesheet. Check sequdas code.
-- v0.6   - Advanced Data integrity check
-- v0.7   - Installer and one script run
-- v0.8   - Progress bar in UI using API
-- v0.9
-- v1.0   - Long Term Release Freeze, no new features, only bugfixes
+- ~~v0.2~~
+     - ~~output mail folder in remote server~~
+     - ~~simplified run script~~
+- v0.3   - enhance mail message and fix dry run
+- v0.4   - run instrument error files send via email
+- v0.5   - JSON status file: file status, checksum, num_files, timestamp
+- v0.6   - Web UI using flask/django
+- v0.7   - Advanced Data integrity check
+- v0.8   - Installer and one script run
+- v0.9   - Progress bar in UI using API
+- v1.0   - Long Term Release (LTM), New feature freeze, only bugfixes
 
 ## Troubleshooting
 Problem: `$'\r': command not found`
