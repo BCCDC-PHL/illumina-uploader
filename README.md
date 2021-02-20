@@ -37,29 +37,29 @@ Delete database (recommended when testing)
 rm local.db
 ```
 
-Initialise database
+Initialise database and specify custom config and sequencer
 ```
 python illumina_uploader.py --config config.ini --sequencer miseq --create-db
 ```
 
 Scan folders in a directory and upload (default behavior)
 ```
-python illumina_uploader.py --config config.ini --sequencer miseq
+python illumina_uploader.py
 ```
 
 To upload one specific folder (will not update db)
 ```
-python illumina_uploader.py --config config.ini --sequencer miseq --upload-single-run 200619_M00325_0209_000000000-J6M35
+python illumina_uploader.py --config config2.ini --sequencer nextseq --upload-single-run 200619_M00325_0209_000000000-J6M35
 ```
 
 Backup database (specify backup folder in config). This will create a backup database file in following format: backup_YYYY-MM-DD-HH-MM-SS.db
 ```
-python illumina_uploader.py --config config.ini --sequencer miseq --backup-db
+python illumina_uploader.py --backup-db
 ```
 
 Dry run test
 ```
-python illumina_uploader.py --config config.ini --sequencer miseq --dry-run
+python illumina_uploader.py --dry-run
 ```
 
 ## Changelog
