@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import argparse, platform, sqlite3, time
-from fabfile import rsyncFolder, checkupSystemUptime, scpCopyCompleteFile
+from fabfile import rsyncFolder, checkupSystemUptime, scpCopyMailFile
 from invoke.context import Context
 from configparser import ConfigParser
 from utils import setupLogger, addToList
@@ -12,17 +12,22 @@ def main(args):
     '''
     #Initialize objects
     configObject = ConfigParser()
-    configObject.read(args.config)
+    if not args.config:
+        configObject.read("config.ini")    
+    else:
+        configObject.read(args.config)
     serverInfo = configObject["SERVER"]
     localInfo = configObject["LOCAL"]
     commands = configObject["COMMANDS"]
     context = Context()
-    
-    #Setup logger
     logger = setupLogger(localInfo["logfile"])
+    if not args.sequencer:
+        sequencer = localInfo["sequencer"]
+    else:
+        sequencer = args.sequencer
 
     #Check arguments
-    if args.sequencer == "miseq":
+    if sequencer == "miseq":
         folderRegex = localInfo["folderregexmiseq"]
     else:
         folderRegex = localInfo["folderregexnextseq"]
@@ -56,6 +61,7 @@ def main(args):
                 "rsync": commands["rsynccommand"],
                 "sshformat": sshformat,
                 "scp": commands["scpcommand"],
+                "mailmessage": localInfo["mailmessage"],
                 "logger": logger,
                 "debug": True if args.debug else False
             }
@@ -75,8 +81,8 @@ def main(args):
                 for folderName in foldersToUpload:
                     runargs["inFile"] = folderName[0]
                     rsyncFolder(context, runargs)
-                    scpCopyCompleteFile(context, runargs)
                     dbObject.markAsUploaded(folderName[0])
+                    scpCopyMailFile(context, runargs)
             #Goto sleep (displayed in minutes)
             logger.info("Sleeping for {0} minutes".format(localInfo["sleeptime"]))
             sleeptimeInSeconds = int(localInfo["sleeptime"])*60
@@ -87,8 +93,8 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Scan for new folders in a directory on Illumina sequencer and upload to remote server.")
-    parser.add_argument("--config", required=True, help="location of config file")
-    parser.add_argument("--sequencer", required=True, help="miseq or nextseq")
+    parser.add_argument("--config", help="location of config file (default is config.ini)")
+    parser.add_argument("--sequencer", help="miseq or nextseq (default taken from config file")
     parser.add_argument("--upload-single-run", help="location of single folder run to upload (will not update db)")
     parser.add_argument("--create-db", action="store_true", help="initialise sqlite database")
     parser.add_argument("--backup-db", action="store_true", help="backup sqlite database")
