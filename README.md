@@ -83,8 +83,12 @@ python illumina_uploader.py --dry-run
 - ~~v0.2~~
      - ~~output mail folder in remote server~~
      - ~~simplified run script~~
-- v0.3   - enhance mail message and fix dry run
-- v0.4   - run instrument error files send via email
+- v0.3
+     - upload from two locations
+     - fix mail message
+     - fix dry run
+     - fix line 75 debug
+- v0.4   - upload instrument error files
 - v0.5   - JSON status file: file status, checksum, num_files, timestamp
 - v0.6   - Web UI using flask/django
 - v0.7   - Advanced Data integrity check
