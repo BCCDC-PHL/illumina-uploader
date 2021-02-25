@@ -104,11 +104,11 @@ class Database:
                         self.logger.info("Adding {0} to DB".format(folder))
                         self.prepFolders(folderRegex, folder)
 
-    def markAsUploaded(self, folderName):
+    def markFileInDb(self, folderName, markAs):
         '''
-        Mark folder as UPLOADED in db
+        Mark folder as UPLOADED or FAILED in db
         '''
         c = self.connection.cursor()
-        c.execute(self.queries["markasuploaded"].format(self.folderTable, "UPLOADED", folderName))
+        c.execute(self.queries["markfileindb"].format(self.folderTable, markAs, folderName))
         self.connection.commit()
-        self.logger.info("Folder {0} marked in DB as UPLOADED".format(folderName))
+        self.logger.info("Folder {0} marked in DB as {1}".format(folderName, markAs))

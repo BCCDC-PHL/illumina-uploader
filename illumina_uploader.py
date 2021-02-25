@@ -72,7 +72,6 @@ def main(args):
                 rsyncFolder(context, runargs)
                 addToList(localInfo["inputdir"], args.upload_single_run, "ignore.txt")
                 logger.info("Folder {0} added to ignore list".format(args.upload_single_run))
-                if args.debug: logger.info("regenIgnoreList:",regenIgnoreList(localInfo["inputdir"]))
                 break
             else:
                 logger.info("Start Watching Directory..")
@@ -80,9 +79,13 @@ def main(args):
                 foldersToUpload = dbObject.getFolderList()
                 for folderName in foldersToUpload:
                     runargs["inFile"] = folderName[0]
-                    rsyncFolder(context, runargs)
-                    dbObject.markAsUploaded(folderName[0])
-                    scpCopyMailFile(context, runargs)
+                    isSuccessful = rsyncFolder(context, runargs)
+                    if isSuccessful:
+                        dbObject.markFileInDb(folderName[0], "UPLOADED")
+                        scpCopyMailFile(context, runargs)
+                    else:
+                         logger.info("Unsuccessful upload, marking in DB as FAILED")
+                         dbObject.markFileInDb(folderName[0], "FAILED")
             #Goto sleep (displayed in minutes)
             logger.info("Sleeping for {0} minutes".format(localInfo["sleeptime"]))
             sleeptimeInSeconds = int(localInfo["sleeptime"])*60
