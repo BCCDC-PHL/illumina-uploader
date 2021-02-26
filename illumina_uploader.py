@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import argparse, platform, sqlite3, time
-from fabfile import rsyncFolder, checkupSystemUptime, scpCopyMailFile
+from fabfile import rsyncFolder, checkupSystemUptime
 from invoke.context import Context
 from configparser import ConfigParser
-from utils import setupLogger, addToList
+from utils import setupLogger, addToList, sendEmailUsingPlover, getDateTimeNow
 from database import Database
 
 def main(args):
@@ -17,6 +17,7 @@ def main(args):
     else:
         configObject.read(args.config)
     serverInfo = configObject["SERVER"]
+    emailInfo = configObject["EMAIL"]
     localInfo = configObject["LOCAL"]
     commands = configObject["COMMANDS"]
     context = Context()
@@ -35,6 +36,9 @@ def main(args):
         checkupSystemUptime(context, {"logger":logger})
         logger.info("Dry run completed. Exiting.")
         exit(0)
+    isDebug = False
+    if args.debug:
+        isDebug = True
 
     #Database Operations
     dbInfo = configObject["DB"]
@@ -57,13 +61,14 @@ def main(args):
                 "login": serverInfo["loginid"],
                 "outDir": serverInfo["outputdir"],
                 "inDir": localInfo["inputdir"],
+                "inDirRsync" : localInfo["inputdirrsync"],
                 "chmod": commands["chmodcommand"],
                 "rsync": commands["rsynccommand"],
                 "sshformat": sshformat,
                 "scp": commands["scpcommand"],
                 "mailmessage": localInfo["mailmessage"],
                 "logger": logger,
-                "debug": True if args.debug else False
+                "debug": isDebug
             }
             #Call rsync
             if args.upload_single_run:
@@ -82,7 +87,13 @@ def main(args):
                     isSuccessful = rsyncFolder(context, runargs)
                     if isSuccessful:
                         dbObject.markFileInDb(folderName[0], "UPLOADED")
-                        scpCopyMailFile(context, runargs)
+                        args = {
+                            "token": emailInfo["emailtoken"],
+                            "mailto": emailInfo["mailto"],
+                            "subject": "Folder {0} successfully uploaded to sabin".format(folderName[0]),
+                            "body": "Time of upload {0}".format(getDateTimeNow()),
+                            }
+                        sendEmailUsingPlover(emailInfo["emailurl"], args)
                     else:
                          logger.info("Unsuccessful upload, marking in DB as FAILED")
                          dbObject.markFileInDb(folderName[0], "FAILED")

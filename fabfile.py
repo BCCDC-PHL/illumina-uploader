@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 from invoke import UnexpectedExit
 from fabric import task
-from utils import formatStdout
-from datetime import datetime
+from utils import formatStdout, getDateTimeNow
 
 @task
 def checkupSystemUptime(context, args):
@@ -14,8 +13,8 @@ def checkupSystemUptime(context, args):
         logger.info("Running: uptime")
         result = context.run("uptime")
     except (UnexpectedExit, KeyboardInterrupt) as error:
-        logger.info(error)
         logger.info("Interrupted!")
+        logger.info(error)
     else:
         formatStdout(result, logger)
         logger.info("Completed: uptime")
@@ -35,7 +34,7 @@ def rsyncFolder(context, args):
         if debug: logger.info("Running rsyncFolder run directory: "+step1)
         result = context.run(step1)
         #STEP 2: create COPY_COMPLETE file
-        step2 = "echo {0} > {1}".format(F"{datetime.now():%Y-%m-%d %H:%M:%S}", copyfilename)
+        step2 = "echo {0} > {1}".format(getDateTimeNow(), copyfilename)
         if debug: logger.info("Running rsyncFolder create COPY_COMPLETE file: "+step2)
         result = context.run(step2)
         #STEP 3: rsync COPY_COMPLETE file
@@ -43,8 +42,8 @@ def rsyncFolder(context, args):
         if debug: logger.info("Running rsyncFolder rsync COPY_COMPLETE file: "+step3)
         result = context.run(step3)
     except (UnexpectedExit, KeyboardInterrupt) as error:
-        logger.info(error)
         logger.info("Interrupted!")
+        logger.info(error)
         return False
     else:
         logger.info("Please wait.. writing logfile (might take a while)")
@@ -58,24 +57,21 @@ def scpCopyMailFile(context, args):
     debug = args["debug"]
     args["inDir"] = args["inDir"] + "mail/"
     args["outDir"] = args["outDir"] + "mail/"
-    args["uploadTime"] = F"{datetime.now():%Y_%m_%d_%H_%M_%S}"
+    args["uploadTime"] = getDateTimeNow()
     args["filename"] = "msg_{0}.txt".format(args["uploadTime"])
     try:
         createcommand = "echo {0} > {1}{2}".format(args["mailmessage"].format_map(args), args["inDir"], args["filename"])
         copycommand = args["scp"].format_map(args)
-        if debug: logger.info("Running scpCopyMailFile create command: ",+createcommand)
+        if debug: logger.info("Running scpCopyMailFile create command: "+createcommand)
         result = context.run(copycommand)
-        if debug: logger.info("Running scpCopyMailFile scp command: ",+copycommand)
+        if debug: logger.info("Running scpCopyMailFile scp command: "+copycommand)
         result = context.run(createcommand)
     except (UnexpectedExit, KeyboardInterrupt) as error:
-        logger.info(error)
         logger.info("Interrupted!")
+        logger.info(error)
     else:
         formatStdout(result, logger)
-        if debug:
-            logger.info("Completed!")
-            logger.info(createcommand)
-            logger.info(copycommand)
+        if debug: logger.info("Completed!")
 
 @task
 def calcMD5Hash(context, args):
@@ -87,8 +83,8 @@ def calcMD5Hash(context, args):
         logger.info("Running: calcMD5Hash")
         result = context.run("find . -xdev -type f -print0 | LC_COLLATE=C sort -z | xargs -0 tail -qc100 | md5sum -")
     except (UnexpectedExit, KeyboardInterrupt) as error:
-        logger.info(error)
         logger.info("Interrupted!")
+        logger.info(error)
     else:
         formatStdout(result, logger)
         logger.info("Completed: calcMD5Hash")

@@ -1,4 +1,6 @@
-#backup db
-python illumina_uploader.py --backup-db
+#rm db
+rm local.db
+#create new db
+python illumina_uploader.py --create-db
 #run upload
-python illumina_uploader.py
+python illumina_uploader.py --debug

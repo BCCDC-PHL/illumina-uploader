@@ -1,5 +1,7 @@
-import os, logging, sys
+import os, logging, sys, pytz
 from logging.handlers import RotatingFileHandler
+from urllib.request import urlopen
+from datetime import datetime
 
 def setupLogger(logFile, maxBytes=5000, backupCount=5):
     '''
@@ -58,3 +60,22 @@ def addToList(inputDir, folderName, listType):
     fileLoc = inputDir+listType
     with open(fileLoc, "a") as fileio:
         fileio.write("\n"+folderName)
+
+def convDirToRsyncFormat(inputDir):
+    #TODO Use os.path magic here
+    return inputDir.replace("c:/","/cygwin/c/")
+
+def sendEmailUsingPlover(emailUrl, args):
+    emailUrl = emailUrl.format_map(args)
+    #emailUrl = urllib.parse.quote_plus(emailUrl)
+    emailUrl = emailUrl.replace("|","%7C").replace(" ","%20")
+    print(emailUrl)
+    response = urlopen(emailUrl)
+    print(response.read())
+    
+def getDateTimeNow():
+    utc_now = pytz.utc.localize(datetime.utcnow())
+    pst_timezone = pytz.timezone("America/Los_Angeles")
+    pst_now = utc_now.astimezone(pst_timezone)
+    return pst_now.strftime("%Y-%m-%d %H:%M:%S")
+    
