@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from invoke import UnexpectedExit
 from fabric import task
-from utils import formatStdout, getDateTimeNow
+from utils import formatStdout, getDateTimeNow, convDirToRsyncFormat
 
 @task
 def checkupSystemUptime(context, args):
@@ -28,6 +28,7 @@ def rsyncFolder(context, args):
     logger = args["logger"]
     debug = args["debug"]
     copyfilename = args["inDir"] + args["inFile"] + "/COPY_COMPLETE"
+    args["inDir"] = convDirToRsyncFormat(args["inDir"])
     try:
         #STEP 1: rsync run directory
         step1 = args["rsync"].format_map(args)
@@ -51,6 +52,7 @@ def rsyncFolder(context, args):
         if debug: logger.info("Completed!")
         return True
 
+'''
 @task
 def scpCopyMailFile(context, args):
     logger = args["logger"]
@@ -75,9 +77,7 @@ def scpCopyMailFile(context, args):
 
 @task
 def calcMD5Hash(context, args):
-    '''
-    Calculate MD5 Hash given directory name. Calculation speed is 1Gb/Sec
-    '''
+    # Calculate MD5 Hash given directory name. Calculation speed is 1Gb/Sec
     logger = args["logger"]
     try:
         logger.info("Running: calcMD5Hash")
@@ -88,3 +88,5 @@ def calcMD5Hash(context, args):
     else:
         formatStdout(result, logger)
         logger.info("Completed: calcMD5Hash")
+
+'''

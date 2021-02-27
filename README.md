@@ -83,11 +83,12 @@ python illumina_uploader.py --dry-run
 - ~~v0.2~~
      - ~~output mail folder in remote server~~
      - ~~simplified run script~~
-- v0.3
-     - upload from two locations
-     - fix mail message timezone
+- ~~v0.3~~
+     - ~~upload from two locations~~
+     - ~~fix mail message timezone~~
+- v0.4
      - fix dry run
-- v0.4   - upload instrument error files
+     - fix crash when rsync network error
 - v0.5   - JSON status file: file status, checksum, num_files, timestamp
 - v0.6   - Web UI using flask/django
 - v0.7   - Advanced Data integrity check

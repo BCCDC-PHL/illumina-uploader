@@ -63,15 +63,16 @@ def addToList(inputDir, folderName, listType):
 
 def convDirToRsyncFormat(inputDir):
     #TODO Use os.path magic here
-    return inputDir.replace("c:/","/cygwin/c/")
+    return inputDir.replace("c:/","/cygdrive/c/")
 
 def sendEmailUsingPlover(emailUrl, args):
+    #TODO add isDebug
     emailUrl = emailUrl.format_map(args)
     #emailUrl = urllib.parse.quote_plus(emailUrl)
     emailUrl = emailUrl.replace("|","%7C").replace(" ","%20")
-    print(emailUrl)
+    #print(emailUrl)
     response = urlopen(emailUrl)
-    print(response.read())
+    #print(response.read())
     
 def getDateTimeNow():
     utc_now = pytz.utc.localize(datetime.utcnow())

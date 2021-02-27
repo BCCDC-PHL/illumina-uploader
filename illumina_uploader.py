@@ -26,6 +26,7 @@ def main(args):
         sequencer = localInfo["sequencer"]
     else:
         sequencer = args.sequencer
+    inputdirs = localInfo["inputdirs"].split(",")
 
     #Check arguments
     if sequencer == "miseq":
@@ -36,14 +37,12 @@ def main(args):
         checkupSystemUptime(context, {"logger":logger})
         logger.info("Dry run completed. Exiting.")
         exit(0)
-    isDebug = False
-    if args.debug:
-        isDebug = True
+    isDebug = True if args.debug else False
 
     #Database Operations
     dbInfo = configObject["DB"]
     sqlInfo = configObject["SQL"]
-    dbObject = Database(dbInfo, sqlInfo, logger, localInfo["inputdir"], folderRegex)
+    dbObject = Database(dbInfo, sqlInfo, logger, inputdirs, folderRegex)
     if args.create_db:
         dbObject.createDb()
         exit(0)
@@ -60,8 +59,6 @@ def main(args):
                 "host": serverInfo["host"],
                 "login": serverInfo["loginid"],
                 "outDir": serverInfo["outputdir"],
-                "inDir": localInfo["inputdir"],
-                "inDirRsync" : localInfo["inputdirrsync"],
                 "chmod": commands["chmodcommand"],
                 "rsync": commands["rsynccommand"],
                 "sshformat": sshformat,
@@ -75,14 +72,16 @@ def main(args):
                 logger.info("Start One-off run for single directory {0}".format(args.upload_single_run))
                 runargs["inFile"] = args.upload_single_run
                 rsyncFolder(context, runargs)
-                addToList(localInfo["inputdir"], args.upload_single_run, "ignore.txt")
+                addToList(inputdirs, args.upload_single_run, "ignore.txt")
                 logger.info("Folder {0} added to ignore list".format(args.upload_single_run))
                 break
             else:
                 logger.info("Start Watching Directory..")
-                dbObject.watchDirectory(folderRegex, localInfo["watchfilepath"])
+                dbObject.watchDirectories(localInfo["watchfilepath"])
                 foldersToUpload = dbObject.getFolderList()
                 for folderName in foldersToUpload:
+                    runargs["inDir"] = dbObject.findFolder(folderName[0])
+                    if isDebug: logger.info("{0} found in {1}".format(folderName[0], runargs["inDir"]))
                     runargs["inFile"] = folderName[0]
                     isSuccessful = rsyncFolder(context, runargs)
                     if isSuccessful:
