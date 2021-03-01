@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import argparse, platform, sqlite3, time
-from fabfile import rsyncFolder, checkupSystemUptime, scpCopyMailFile
+from fabfile import rsyncFolder, checkupSystemUptime
 from invoke.context import Context
 from configparser import ConfigParser
-from utils import setupLogger, addToList
+from utils import setupLogger, addToList, sendEmailUsingPlover, getDateTimeNow
 from database import Database
 
 def main(args):
@@ -17,6 +17,7 @@ def main(args):
     else:
         configObject.read(args.config)
     serverInfo = configObject["SERVER"]
+    emailInfo = configObject["EMAIL"]
     localInfo = configObject["LOCAL"]
     commands = configObject["COMMANDS"]
     context = Context()
@@ -25,6 +26,7 @@ def main(args):
         sequencer = localInfo["sequencer"]
     else:
         sequencer = args.sequencer
+    inputdirs = localInfo["inputdirs"].split(",")
 
     #Check arguments
     if sequencer == "miseq":
@@ -35,11 +37,12 @@ def main(args):
         checkupSystemUptime(context, {"logger":logger})
         logger.info("Dry run completed. Exiting.")
         exit(0)
-
+    isDebug = True if args.debug else False
+    single_run = args.upload_single_run
     #Database Operations
     dbInfo = configObject["DB"]
     sqlInfo = configObject["SQL"]
-    dbObject = Database(dbInfo, sqlInfo, logger, localInfo["inputdir"], folderRegex)
+    dbObject = Database(dbInfo, sqlInfo, logger, inputdirs, folderRegex)
     if args.create_db:
         dbObject.createDb()
         exit(0)
@@ -56,33 +59,44 @@ def main(args):
                 "host": serverInfo["host"],
                 "login": serverInfo["loginid"],
                 "outDir": serverInfo["outputdir"],
-                "inDir": localInfo["inputdir"],
                 "chmod": commands["chmodcommand"],
                 "rsync": commands["rsynccommand"],
                 "sshformat": sshformat,
                 "scp": commands["scpcommand"],
-                "mailmessage": localInfo["mailmessage"],
                 "logger": logger,
-                "debug": True if args.debug else False
+                "debug": isDebug
             }
-            #Call rsync
-            if args.upload_single_run:
-                logger.info("Start One-off run for single directory {0}".format(args.upload_single_run))
-                runargs["inFile"] = args.upload_single_run
+            #Call fabric tasks
+            if  single_run:
+                logger.info("Start One-off run for single directory {0}".format(single_run))
+                runargs["inFile"] = single_run
                 rsyncFolder(context, runargs)
-                addToList(localInfo["inputdir"], args.upload_single_run, "ignore.txt")
-                logger.info("Folder {0} added to ignore list".format(args.upload_single_run))
-                if args.debug: logger.info("regenIgnoreList:",regenIgnoreList(localInfo["inputdir"]))
+                addToList(inputdirs, single_run, "ignore.txt")
+                logger.info("Folder {0} added to ignore list".format(single_run))
                 break
             else:
                 logger.info("Start Watching Directory..")
-                dbObject.watchDirectory(folderRegex, localInfo["watchfilepath"])
+                dbObject.watchDirectories(localInfo["watchfilepath"])
                 foldersToUpload = dbObject.getFolderList()
                 for folderName in foldersToUpload:
-                    runargs["inFile"] = folderName[0]
-                    rsyncFolder(context, runargs)
-                    dbObject.markAsUploaded(folderName[0])
-                    scpCopyMailFile(context, runargs)
+                    folderToUpload = folderName[0]
+                    runargs["inDir"] = dbObject.findFolder(folderToUpload)
+                    if isDebug: logger.info("{0} found in {1}".format(folderToUpload, runargs["inDir"]))
+                    runargs["inFile"] = folderToUpload
+                    isSuccessful = rsyncFolder(context, runargs)
+                    status = "UPLOADED" if isSuccessful else "FAILED"
+                    #Mail arguments
+                    args = {
+                        "debug": isDebug,
+                        "token": emailInfo["emailtoken"],
+                        "mailto": emailInfo["mailto"],
+                        "mailtolab": emailInfo["mailtolab"],
+                        "subject": emailInfo["mailsubject"].format(status=status, folderToUpload=folderToUpload),
+                        "body": emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfUpload=getDateTimeNow())
+                    }
+                    logger.info("Marking in DB as {0}".format(status))
+                    dbObject.markFileInDb(folderToUpload, status)
+                    sendEmailUsingPlover(emailInfo["emailurl"], args)
             #Goto sleep (displayed in minutes)
             logger.info("Sleeping for {0} minutes".format(localInfo["sleeptime"]))
             sleeptimeInSeconds = int(localInfo["sleeptime"])*60
