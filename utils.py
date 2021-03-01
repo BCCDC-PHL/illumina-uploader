@@ -1,4 +1,4 @@
-import os, logging, sys, pytz
+import os, logging, sys, pytz, time
 from logging.handlers import RotatingFileHandler
 from urllib.request import urlopen
 from datetime import datetime
@@ -66,13 +66,21 @@ def convDirToRsyncFormat(inputDir):
     return inputDir.replace("c:/","/cygdrive/c/")
 
 def sendEmailUsingPlover(emailUrl, args):
-    #TODO add isDebug
+    time.sleep(5) #Add time delay before sending out email
+    #args["mailto"] = args["mailtolab"]
     emailUrl = emailUrl.format_map(args)
-    #emailUrl = urllib.parse.quote_plus(emailUrl)
     emailUrl = emailUrl.replace("|","%7C").replace(" ","%20")
-    #print(emailUrl)
     response = urlopen(emailUrl)
-    #print(response.read())
+    '''
+    if args["debug"]:
+        debugLine = "!!! THIS IS A TEST PLEASE IGNORE !!!"
+        args["subject"] = debugLine + args["subject"]
+        args["body"] = debugLine + args["body"]
+        emailUrl = emailUrl.format_map(args)
+        #emailUrl = urllib.parse.quote_plus(emailUrl)
+        emailUrl = emailUrl.replace("|","%7C").replace(" ","%20")
+        response = urlopen(emailUrl)
+    '''
     
 def getDateTimeNow():
     utc_now = pytz.utc.localize(datetime.utcnow())

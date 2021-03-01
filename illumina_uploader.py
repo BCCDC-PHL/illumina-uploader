@@ -38,7 +38,7 @@ def main(args):
         logger.info("Dry run completed. Exiting.")
         exit(0)
     isDebug = True if args.debug else False
-
+    single_run = args.upload_single_run
     #Database Operations
     dbInfo = configObject["DB"]
     sqlInfo = configObject["SQL"]
@@ -63,39 +63,40 @@ def main(args):
                 "rsync": commands["rsynccommand"],
                 "sshformat": sshformat,
                 "scp": commands["scpcommand"],
-                "mailmessage": localInfo["mailmessage"],
                 "logger": logger,
                 "debug": isDebug
             }
-            #Call rsync
-            if args.upload_single_run:
-                logger.info("Start One-off run for single directory {0}".format(args.upload_single_run))
-                runargs["inFile"] = args.upload_single_run
+            #Call fabric tasks
+            if  single_run:
+                logger.info("Start One-off run for single directory {0}".format(single_run))
+                runargs["inFile"] = single_run
                 rsyncFolder(context, runargs)
-                addToList(inputdirs, args.upload_single_run, "ignore.txt")
-                logger.info("Folder {0} added to ignore list".format(args.upload_single_run))
+                addToList(inputdirs, single_run, "ignore.txt")
+                logger.info("Folder {0} added to ignore list".format(single_run))
                 break
             else:
                 logger.info("Start Watching Directory..")
                 dbObject.watchDirectories(localInfo["watchfilepath"])
                 foldersToUpload = dbObject.getFolderList()
                 for folderName in foldersToUpload:
-                    runargs["inDir"] = dbObject.findFolder(folderName[0])
-                    if isDebug: logger.info("{0} found in {1}".format(folderName[0], runargs["inDir"]))
-                    runargs["inFile"] = folderName[0]
+                    folderToUpload = folderName[0]
+                    runargs["inDir"] = dbObject.findFolder(folderToUpload)
+                    if isDebug: logger.info("{0} found in {1}".format(folderToUpload, runargs["inDir"]))
+                    runargs["inFile"] = folderToUpload
                     isSuccessful = rsyncFolder(context, runargs)
-                    if isSuccessful:
-                        dbObject.markFileInDb(folderName[0], "UPLOADED")
-                        args = {
-                            "token": emailInfo["emailtoken"],
-                            "mailto": emailInfo["mailto"],
-                            "subject": "Folder {0} successfully uploaded to sabin".format(folderName[0]),
-                            "body": "Time of upload {0}".format(getDateTimeNow()),
-                            }
-                        sendEmailUsingPlover(emailInfo["emailurl"], args)
-                    else:
-                         logger.info("Unsuccessful upload, marking in DB as FAILED")
-                         dbObject.markFileInDb(folderName[0], "FAILED")
+                    status = "UPLOADED" if isSuccessful else "FAILED"
+                    #Mail arguments
+                    args = {
+                        "debug": isDebug,
+                        "token": emailInfo["emailtoken"],
+                        "mailto": emailInfo["mailto"],
+                        "mailtolab": emailInfo["mailtolab"],
+                        "subject": emailInfo["mailsubject"].format(status=status, folderToUpload=folderToUpload),
+                        "body": emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfUpload=getDateTimeNow())
+                    }
+                    logger.info("Marking in DB as {0}".format(status))
+                    dbObject.markFileInDb(folderToUpload, status)
+                    sendEmailUsingPlover(emailInfo["emailurl"], args)
             #Goto sleep (displayed in minutes)
             logger.info("Sleeping for {0} minutes".format(localInfo["sleeptime"]))
             sleeptimeInSeconds = int(localInfo["sleeptime"])*60

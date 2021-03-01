@@ -47,9 +47,8 @@ def rsyncFolder(context, args):
         logger.info(error)
         return False
     else:
-        logger.info("Please wait.. writing logfile (might take a while)")
+        logger.info("Please wait.. writing logfile")
         formatStdout(result, logger)
-        if debug: logger.info("Completed!")
         return True
 
 '''
