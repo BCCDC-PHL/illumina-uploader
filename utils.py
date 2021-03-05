@@ -2,6 +2,8 @@ import os, logging, sys, pytz, time
 from logging.handlers import RotatingFileHandler
 from urllib.request import urlopen
 from datetime import datetime
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 
 def setupLogger(logFile, maxBytes=5000, backupCount=5):
     '''
@@ -67,20 +69,9 @@ def convDirToRsyncFormat(inputDir):
 
 def sendEmailUsingPlover(emailUrl, args):
     time.sleep(5) #Add time delay before sending out email
-    #args["mailto"] = args["mailtolab"]
     emailUrl = emailUrl.format_map(args)
     emailUrl = emailUrl.replace("|","%7C").replace(" ","%20")
     response = urlopen(emailUrl)
-    '''
-    if args["debug"]:
-        debugLine = "!!! THIS IS A TEST PLEASE IGNORE !!!"
-        args["subject"] = debugLine + args["subject"]
-        args["body"] = debugLine + args["body"]
-        emailUrl = emailUrl.format_map(args)
-        #emailUrl = urllib.parse.quote_plus(emailUrl)
-        emailUrl = emailUrl.replace("|","%7C").replace(" ","%20")
-        response = urlopen(emailUrl)
-    '''
     
 def getDateTimeNow():
     utc_now = pytz.utc.localize(datetime.utcnow())

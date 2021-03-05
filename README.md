@@ -86,16 +86,19 @@ python illumina_uploader.py --dry-run
 - ~~v0.3~~
      - ~~upload from two locations~~
      - ~~fix mail message timezone~~
-- v0.4
-     - turn off global ssl in email
-     - correct nextseq regex and make it future proof
-     - add pytz to requirements
-     - fix before and after email format for lab
-     - fix hacky way of COPY_COMPLETE file
+- ~~v0.4~~
+     - add multiple output locations for nextseqs
+     - ~~fix ssl problem in email~~
+     - ~~fix nextseq regex~~
+     - ~~fix before and after email format for lab~~
+     - ~~remove COPY_COMPLETE file~~
+     - ~~add upload_complete.json with start_upload_time and end_upload_time~~
      - fix timezone in log messages
      - fix dry run
      - fix crash when rsync network error
-- v0.5   - JSON status file: file status, checksum, num_files, timestamp
+     - quick create ignore.txt file from a given input folder
+     - update config.ini.template
+- v0.5   - update upload_complete.json: status, checksum and num_files
 - v0.6   - Web UI using flask/django
 - v0.7   - Advanced Data integrity check
 - v0.8   - Installer and one script run

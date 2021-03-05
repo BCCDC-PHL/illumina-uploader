@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import argparse, platform, sqlite3, time
-from fabfile import rsyncFolder, checkupSystemUptime
+from fabfile import uploadRunToSabin, checkupSystemUptime
 from invoke.context import Context
 from configparser import ConfigParser
 from utils import setupLogger, addToList, sendEmailUsingPlover, getDateTimeNow
@@ -28,7 +28,7 @@ def main(args):
         sequencer = args.sequencer
     inputdirs = localInfo["inputdirs"].split(",")
 
-    #Check arguments
+    #Regex matching https://javascript.info/regexp-quantifiers
     if sequencer == "miseq":
         folderRegex = localInfo["folderregexmiseq"]
     else:
@@ -39,6 +39,7 @@ def main(args):
         exit(0)
     isDebug = True if args.debug else False
     single_run = args.upload_single_run
+    
     #Database Operations
     dbInfo = configObject["DB"]
     sqlInfo = configObject["SQL"]
@@ -54,7 +55,7 @@ def main(args):
         while(True):
             sshformat = commands["sshwincommand"] if platform.system()=="Windows" else commands["sshnixcommand"]
             #Collect rsync command info
-            runargs = {
+            runArgs = {
                 "pem": serverInfo["pemfile"],
                 "host": serverInfo["host"],
                 "login": serverInfo["loginid"],
@@ -64,13 +65,14 @@ def main(args):
                 "sshformat": sshformat,
                 "scp": commands["scpcommand"],
                 "logger": logger,
-                "debug": isDebug
+                "debug": isDebug,
+                "starttime": getDateTimeNow(),
             }
             #Call fabric tasks
             if  single_run:
                 logger.info("Start One-off run for single directory {0}".format(single_run))
-                runargs["inFile"] = single_run
-                rsyncFolder(context, runargs)
+                runArgs["inFile"] = single_run
+                uploadRunToSabin(context, runArgs)
                 addToList(inputdirs, single_run, "ignore.txt")
                 logger.info("Folder {0} added to ignore list".format(single_run))
                 break
@@ -80,23 +82,34 @@ def main(args):
                 foldersToUpload = dbObject.getFolderList()
                 for folderName in foldersToUpload:
                     folderToUpload = folderName[0]
-                    runargs["inDir"] = dbObject.findFolder(folderToUpload)
-                    if isDebug: logger.info("{0} found in {1}".format(folderToUpload, runargs["inDir"]))
-                    runargs["inFile"] = folderToUpload
-                    isSuccessful = rsyncFolder(context, runargs)
-                    status = "UPLOADED" if isSuccessful else "FAILED"
-                    #Mail arguments
-                    args = {
+                    runArgs["inDir"] = dbObject.findFolder(folderToUpload)
+                    if isDebug: logger.info("{0} found in {1}".format(folderToUpload, runArgs["inDir"]))
+                    runArgs["inFile"] = folderToUpload
+                    #Mail send before start
+                    status = "STARTED"
+                    startTime = getDateTimeNow()
+                    mailArgs = {
                         "debug": isDebug,
                         "token": emailInfo["emailtoken"],
                         "mailto": emailInfo["mailto"],
-                        "mailtolab": emailInfo["mailtolab"],
                         "subject": emailInfo["mailsubject"].format(status=status, folderToUpload=folderToUpload),
-                        "body": emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfUpload=getDateTimeNow())
+                        "body": emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=startTime)
                     }
+                    sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
+                    isSuccessful = uploadRunToSabin(context, runArgs)
+                    endTime = getDateTimeNow()
+                    status = "UPLOADED" if isSuccessful else "FAILED"
                     logger.info("Marking in DB as {0}".format(status))
                     dbObject.markFileInDb(folderToUpload, status)
-                    sendEmailUsingPlover(emailInfo["emailurl"], args)
+                    #Mail send after end
+                    mailArgs = {
+                        "debug": isDebug,
+                        "token": emailInfo["emailtoken"],
+                        "mailto": emailInfo["mailto"],
+                        "subject": emailInfo["mailsubject"].format(status=status, folderToUpload=folderToUpload),
+                        "body": emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=endTime)
+                    }
+                    sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
             #Goto sleep (displayed in minutes)
             logger.info("Sleeping for {0} minutes".format(localInfo["sleeptime"]))
             sleeptimeInSeconds = int(localInfo["sleeptime"])*60
