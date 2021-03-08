@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from invoke import UnexpectedExit
 from fabric import task
-from utils import formatStdout, getDateTimeNow, convDirToRsyncFormat
+from utils import formatStdout, getDateTimeNow, getDateTimeNowIso, convDirToRsyncFormat
 
 @task
 def checkupSystemUptime(context, args):
@@ -35,7 +35,7 @@ def uploadRunToSabin(context, args):
         if debug: logger.info("Running rsyncFolder run directory: "+step1)
         result = context.run(step1)
         #STEP 2: create upload_complete.json
-        step2 = "echo {{\"timestamp_start\":\"{0}\",\"timestamp_end\":\"{1}\"}} > {2}".format(args["starttime"], getDateTimeNow(), copyfilename)
+        step2 = "echo {{\"timestamp_start\":\"{0}\",\"timestamp_end\":\"{1}\"}} > {2}".format(args["starttime"], getDateTimeNowIso(), copyfilename)
         #step2 = "echo {0} > {1}".format(getDateTimeNow(), copyfilename)
         if debug: logger.info("Running rsyncFolder create upload_complete.json: "+step2)
         result = context.run(step2)

@@ -5,13 +5,32 @@ from datetime import datetime
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
 
+class Formatter(logging.Formatter):
+     """override logging.Formatter to use an aware datetime object"""
+     def converter(self, timestamp):
+        dt = datetime.fromtimestamp(timestamp)
+        tzinfo = pytz.timezone('America/Vancouver')
+        pst_now = dt.astimezone(tzinfo)
+        return pst_now
+
+     def formatTime(self, record, datefmt=None):
+        dt = self.converter(record.created)
+        if datefmt:
+            s = dt.strftime(datefmt)
+        else:
+            try:
+                s = dt.isoformat(timespec='milliseconds')
+            except TypeError:
+                s = dt.isoformat()
+        return s
+
 def setupLogger(logFile, maxBytes=5000, backupCount=5):
     '''
     Setup up logger to output stdout/stderr to terminal and logfile (path from config)
     '''
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
-    formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
+    formatter = Formatter("%(asctime)s [%(levelname)s] %(message)s")
 
     #Set STDOUT
     ch = logging.StreamHandler(sys.stdout)
@@ -49,15 +68,6 @@ def regenIgnoreList(inputDir):
     ignoreList = list(set(ignoreList)) #remove duplicate lines
     return ignoreList
 
-def genUpdateList(outputDir):
-    pass
-
-def putCompletedFile(inputDir):
-    pass
-
-def generateJson(inputDir):
-    pass
-
 def addToList(inputDir, folderName, listType):
     fileLoc = inputDir+listType
     with open(fileLoc, "a") as fileio:
@@ -72,10 +82,18 @@ def sendEmailUsingPlover(emailUrl, args):
     emailUrl = emailUrl.format_map(args)
     emailUrl = emailUrl.replace("|","%7C").replace(" ","%20")
     response = urlopen(emailUrl)
-    
+
+def getCorrectTimezone(utc_now):
+    pst_timezone = pytz.timezone("America/Vancouver")
+    pst_now = utc_now.astimezone(pst_timezone)
+    return pst_now
+
 def getDateTimeNow():
     utc_now = pytz.utc.localize(datetime.utcnow())
-    pst_timezone = pytz.timezone("America/Los_Angeles")
-    pst_now = utc_now.astimezone(pst_timezone)
+    pst_now = getCorrectTimezone(utc_now)
     return pst_now.strftime("%Y-%m-%d %H:%M:%S")
     
+def getDateTimeNowIso():
+    utc_now = pytz.utc.localize(datetime.utcnow())
+    pst_now = getCorrectTimezone(utc_now)
+    return pst_now.isoformat()

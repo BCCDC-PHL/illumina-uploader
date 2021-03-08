@@ -3,7 +3,7 @@ import argparse, platform, sqlite3, time
 from fabfile import uploadRunToSabin, checkupSystemUptime
 from invoke.context import Context
 from configparser import ConfigParser
-from utils import setupLogger, addToList, sendEmailUsingPlover, getDateTimeNow
+from utils import setupLogger, addToList, sendEmailUsingPlover, getDateTimeNow, getDateTimeNowIso
 from database import Database
 
 def main(args):
@@ -66,7 +66,7 @@ def main(args):
                 "scp": commands["scpcommand"],
                 "logger": logger,
                 "debug": isDebug,
-                "starttime": getDateTimeNow(),
+                "starttime": getDateTimeNowIso(),
             }
             #Call fabric tasks
             if  single_run:

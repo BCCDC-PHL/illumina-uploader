@@ -93,12 +93,16 @@ python illumina_uploader.py --dry-run
      - ~~fix before and after email format for lab~~
      - ~~remove COPY_COMPLETE file~~
      - ~~add upload_complete.json with start_upload_time and end_upload_time~~
-     - fix timezone in log messages
-     - fix dry run
-     - fix crash when rsync network error
-     - quick create ignore.txt file from a given input folder
+     - change UPLOADED to FINISHED
+     - ~~fix timezone in log messages~~
+     - simplify sending emails
+     - ~~fix crash when rsync network error~~
      - update config.ini.template
-- v0.5   - update upload_complete.json: status, checksum and num_files
+- v0.5
+      - fix dry run
+      - Add pytest
+      - update upload_complete.json: checksum, input_directory, output_directory
+      - quick create ignore.txt file from a given input folder
 - v0.6   - Web UI using flask/django
 - v0.7   - Advanced Data integrity check
 - v0.8   - Installer and one script run
