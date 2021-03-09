@@ -5,6 +5,7 @@ from invoke.context import Context
 from configparser import ConfigParser
 from utils import setupLogger, addToList, sendEmailUsingPlover, getDateTimeNow, getDateTimeNowIso
 from database import Database
+from dataclasses import asdict
 
 def main(args):
     '''
@@ -26,9 +27,11 @@ def main(args):
         sequencer = localInfo["sequencer"]
     else:
         sequencer = args.sequencer
-    inputdirs = localInfo["inputdirs"].split(",")
-
-    #Regex matching https://javascript.info/regexp-quantifiers
+    inputDirs = localInfo["inputDirs"].split(",")
+    outputDirs = serverInfo["outputdirs"].split(",")
+    inOutMap = dict(zip(inputDirs,outputDirs))
+    
+    #For Regex matching use https://javascript.info/regexp-quantifiers
     if sequencer == "miseq":
         folderRegex = localInfo["folderregexmiseq"]
     else:
@@ -43,7 +46,7 @@ def main(args):
     #Database Operations
     dbInfo = configObject["DB"]
     sqlInfo = configObject["SQL"]
-    dbObject = Database(dbInfo, sqlInfo, logger, inputdirs, folderRegex)
+    dbObject = Database(dbInfo, sqlInfo, logger, inputDirs, folderRegex)
     if args.create_db:
         dbObject.createDb()
         exit(0)
@@ -59,7 +62,8 @@ def main(args):
                 "pem": serverInfo["pemfile"],
                 "host": serverInfo["host"],
                 "login": serverInfo["loginid"],
-                "outDir": serverInfo["outputdir"],
+                "inDir": None,
+                "outDir": None,
                 "chmod": commands["chmodcommand"],
                 "rsync": commands["rsynccommand"],
                 "sshformat": sshformat,
@@ -73,17 +77,16 @@ def main(args):
                 logger.info("Start One-off run for single directory {0}".format(single_run))
                 runArgs["inFile"] = single_run
                 uploadRunToSabin(context, runArgs)
-                addToList(inputdirs, single_run, "ignore.txt")
+                addToList(inputDirs, single_run, "ignore.txt")
                 logger.info("Folder {0} added to ignore list".format(single_run))
                 break
             else:
                 logger.info("Start Watching Directory..")
-                dbObject.watchDirectories(localInfo["watchfilepath"])
+                #runsCache stores run info for later retrieval. TODO optimize
+                runsCache = dbObject.watchDirectories(localInfo["watchfilepath"], inOutMap)
                 foldersToUpload = dbObject.getFolderList()
                 for folderName in foldersToUpload:
                     folderToUpload = folderName[0]
-                    runArgs["inDir"] = dbObject.findFolder(folderToUpload)
-                    if isDebug: logger.info("{0} found in {1}".format(folderToUpload, runArgs["inDir"]))
                     runArgs["inFile"] = folderToUpload
                     #Mail send before start
                     status = "STARTED"
@@ -92,23 +95,19 @@ def main(args):
                         "debug": isDebug,
                         "token": emailInfo["emailtoken"],
                         "mailto": emailInfo["mailto"],
-                        "subject": emailInfo["mailsubject"].format(status=status, folderToUpload=folderToUpload),
+                        "subject": emailInfo["mailsubject"].format(status=status),
                         "body": emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=startTime)
                     }
                     sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
+                    runArgs["runscache"] = runsCache
                     isSuccessful = uploadRunToSabin(context, runArgs)
                     endTime = getDateTimeNow()
-                    status = "UPLOADED" if isSuccessful else "FAILED"
+                    status = "FINISHED" if isSuccessful else "FAILED"
                     logger.info("Marking in DB as {0}".format(status))
                     dbObject.markFileInDb(folderToUpload, status)
-                    #Mail send after end
-                    mailArgs = {
-                        "debug": isDebug,
-                        "token": emailInfo["emailtoken"],
-                        "mailto": emailInfo["mailto"],
-                        "subject": emailInfo["mailsubject"].format(status=status, folderToUpload=folderToUpload),
-                        "body": emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=endTime)
-                    }
+                    #Mail send after done, update subject and body
+                    mailArgs["subject"] = emailInfo["mailsubject"].format(status=status)
+                    mailArgs["body"] = emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=endTime)
                     sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
             #Goto sleep (displayed in minutes)
             logger.info("Sleeping for {0} minutes".format(localInfo["sleeptime"]))

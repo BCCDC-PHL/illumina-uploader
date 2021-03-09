@@ -87,18 +87,19 @@ python illumina_uploader.py --dry-run
      - ~~upload from two locations~~
      - ~~fix mail message timezone~~
 - ~~v0.4~~
-     - add multiple output locations for nextseqs
+     - ~~add multiple output locations for nextseqs~~
      - ~~fix ssl problem in email~~
      - ~~fix nextseq regex~~
      - ~~fix before and after email format for lab~~
      - ~~remove COPY_COMPLETE file~~
      - ~~add upload_complete.json with start_upload_time and end_upload_time~~
-     - change UPLOADED to FINISHED
+     - ~~change UPLOADED to FINISHED in db~~
      - ~~fix timezone in log messages~~
-     - simplify sending emails
      - ~~fix crash when rsync network error~~
-     - update config.ini.template
+     - ~~update config.ini.template~~
 - v0.5
+      - simplify sending emails
+      - rerwite db class to use run class for folder tracking
       - fix dry run
       - Add pytest
       - update upload_complete.json: checksum, input_directory, output_directory

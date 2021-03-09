@@ -22,9 +22,14 @@ def checkupSystemUptime(context, args):
 @task
 def uploadRunToSabin(context, args):
     '''
-    Rsync fabric task.
-    TODO check performance when writing result to logfile
+    Rsync fabric task
     '''
+    #Get inDir and outDir from runsCache
+    for possibleRun in args["runscache"]:
+        if args["inFile"] == possibleRun.name:
+            args["inDir"] = possibleRun.inputDir
+            args["outDir"] = possibleRun.outputDir
+    
     logger = args["logger"]
     debug = args["debug"]
     copyfilename = args["inDir"] + args["inFile"] + "/upload_complete.json"

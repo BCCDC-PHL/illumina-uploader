@@ -2,11 +2,24 @@ import os, logging, sys, pytz, time
 from logging.handlers import RotatingFileHandler
 from urllib.request import urlopen
 from datetime import datetime
+from dataclasses import dataclass, asdict
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
 
+@dataclass
+class Run:
+    '''
+    Run class that handles all run info based operations
+    A run is defined as illumina directory that needs to be transferred
+    '''
+    name: str
+    inputDir: str
+    outputDir: str
+
 class Formatter(logging.Formatter):
-     """override logging.Formatter to use an aware datetime object"""
+     '''
+     Override logging.Formatter to use an aware datetime object
+     '''
      def converter(self, timestamp):
         dt = datetime.fromtimestamp(timestamp)
         tzinfo = pytz.timezone('America/Vancouver')
@@ -41,7 +54,6 @@ def setupLogger(logFile, maxBytes=5000, backupCount=5):
     fh = RotatingFileHandler(logFile, maxBytes, backupCount)
     fh.setFormatter(formatter)
     logger.addHandler(fh)
-
     return logger
 
 def formatStdout(result, logger):
@@ -56,6 +68,9 @@ def formatStdout(result, logger):
         logger.info(result.return_code)
 
 def regenIgnoreList(inputDir):
+    '''
+    Refresh/regenerate ignore.txt file
+    '''
     ignoreList = []
     ignoreFileLoc = inputDir+"ignore.txt"
     if "ignore.txt" in os.listdir(inputDir):
@@ -68,22 +83,40 @@ def regenIgnoreList(inputDir):
     ignoreList = list(set(ignoreList)) #remove duplicate lines
     return ignoreList
 
+def collectIgnoreList(inputDir):
+    '''
+    Collect current folders into ignore.txt
+    useful when setting up on new sequencer
+    '''
+    pass
+
 def addToList(inputDir, folderName, listType):
+    '''
+    Add folder name to ignore list
+    '''
     fileLoc = inputDir+listType
     with open(fileLoc, "a") as fileio:
         fileio.write("\n"+folderName)
 
 def convDirToRsyncFormat(inputDir):
-    #TODO Use os.path magic here
+    '''
+    Only for windows machines TODO Use os.path magic here
+    '''
     return inputDir.replace("c:/","/cygdrive/c/")
 
 def sendEmailUsingPlover(emailUrl, args):
-    time.sleep(5) #Add time delay before sending out email
+    '''
+    Format and Add time delay before sending out email
+    '''
+    time.sleep(5)
     emailUrl = emailUrl.format_map(args)
     emailUrl = emailUrl.replace("|","%7C").replace(" ","%20")
     response = urlopen(emailUrl)
 
 def getCorrectTimezone(utc_now):
+    '''
+    Fix timezone
+    '''
     pst_timezone = pytz.timezone("America/Vancouver")
     pst_now = utc_now.astimezone(pst_timezone)
     return pst_now
