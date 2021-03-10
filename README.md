@@ -8,53 +8,53 @@ Lightweight program for Illumina sequencer that watches for new sequence folders
 - Cross platform compatible
 
 ## Installing
-Get all requirements
+Download latest release zip from https://github.com/BCCDC-PHL/illumina-uploader/releases
+
+Unzip and Goto directory and activate Python Virtual Environment
+```
+python -m venv venv
+source ./venv/bin/activate
+```
+
+Get all required python packages
 ```
 pip install -r requirements.txt
 ```
 
-## Configuration
-The program uses standard python configuration file along with runtime arguments. 
-See [config.ini.template](config.ini.template) for format details.
-
-## CLI Parameters
-Since the program is under active development, running arguments might change in future.
-
-| Parameter            | Required? | Description |
-| -------------------- | --------- | ----------- |
-| `--sequencer`        | NO       | miseq or nextseq (Default taken from config file) |
-| `--config`           | NO       | location of config file |
-| `--upload-single-run`| NO        | location of single folder to upload |
-| `--pem-file`         | NO        | location of pem file |
-| `--create-db`        | NO        | initialise sqlite database |
-| `--backup-db`        | NO        | backup sqlite database |
-| `--dry-run`          | NO        | test run that just prints uptime on remote server |
-
 ## Running
 
-Delete database (recommended when testing)
+### Normal Commands
+
+First time run (initialize database)
 ```
-rm local.db
+python illumina_uploader.py --create-db
 ```
 
-Initialise database and specify custom config and sequencer
-```
-python illumina_uploader.py --config config.ini --sequencer miseq --create-db
-```
-
-Scan folders in a directory and upload (default behavior)
+Normal Run
 ```
 python illumina_uploader.py
 ```
 
-To upload one specific folder (will not update db)
-```
-python illumina_uploader.py --config config2.ini --sequencer nextseq --upload-single-run 200619_M00325_0209_000000000-J6M35
-```
-
-Backup database (specify backup folder in config). This will create a backup database file in following format: backup_YYYY-MM-DD-HH-MM-SS.db
+Backup database (recommended once a week)
 ```
 python illumina_uploader.py --backup-db
+```
+
+## Advanced Commands
+
+To upload one specific folder (will not update db, rather add to ignore list)
+```
+python illumina_uploader.py --upload-single-run 200619_M00325_0209_000000000-J6M35
+```
+
+Delete database (useful for testing.. backup db first!)
+```
+rm local.db
+```
+
+Specify custom config and sequencer
+```
+python illumina_uploader.py --config config.ini --sequencer miseq
 ```
 
 Dry run test
@@ -62,7 +62,24 @@ Dry run test
 python illumina_uploader.py --dry-run
 ```
 
-## Changelog
+## CLI Parameters
+Since the program is under active development, running arguments might change in future.
+
+| Optional Parameter   | Description |
+| -------------------- | ----------- |
+| `--sequencer`        | miseq or nextseq (Default taken from config file) |
+| `--config`           | location of config file |
+| `--upload-single-run`| location of single folder to upload |
+| `--pem-file`         | location of pem file |
+| `--create-db`        | initialise sqlite database |
+| `--backup-db`        | backup sqlite database |
+| `--dry-run`          | test run that just prints uptime on remote server |
+
+## Config file
+The program uses standard python configuration file along with runtime arguments. 
+See [config.ini.template](config.ini.template) for format details.
+
+## Version Changes
 - ~~v0.0.1 - Test rsync command~~
 - ~~v0.0.2 - Finalize rsync command~~
 - ~~v0.0.3 - Test one folder from main script~~
@@ -86,10 +103,24 @@ python illumina_uploader.py --dry-run
 - ~~v0.3~~
      - ~~upload from two locations~~
      - ~~fix mail message timezone~~
-- v0.4
-     - fix dry run
-     - fix crash when rsync network error
-- v0.5   - JSON status file: file status, checksum, num_files, timestamp
+- ~~v0.4~~
+     - ~~add multiple output locations for nextseqs~~
+     - ~~fix ssl problem in email~~
+     - ~~fix nextseq regex~~
+     - ~~fix before and after email format for lab~~
+     - ~~remove COPY_COMPLETE file~~
+     - ~~add upload_complete.json with start_upload_time and end_upload_time~~
+     - ~~change UPLOADED to FINISHED in db~~
+     - ~~fix timezone in log messages~~
+     - ~~fix crash when rsync network error~~
+     - ~~update config.ini.template~~
+- v0.5
+    - simplify sending emails
+    - rerwite db class to use run class for folder tracking
+    - fix dry run
+    - Add pytest
+    - update upload_complete.json: checksum, input_directory, output_directory
+    - quick create ignore.txt file from a given input folder
 - v0.6   - Web UI using flask/django
 - v0.7   - Advanced Data integrity check
 - v0.8   - Installer and one script run

@@ -1,7 +1,8 @@
 import sqlite3, os, re, logging, sys
-from utils import regenIgnoreList
+from utils import regenIgnoreList, Run
 from datetime import datetime
 from shutil import copyfile
+
 
 class Database:
     '''
@@ -47,7 +48,7 @@ class Database:
         Get list of folders from db that need uploading
         '''
         c = self.connection.cursor()
-        c.execute(self.queries["getfolderstoupload"].format("folder" ,self.folderTable, "UPLOADED"))
+        c.execute(self.queries["getfolderstoupload"].format("folder" ,self.folderTable, "FINISHED"))
         result = c.fetchall()
         if result:
             return result
@@ -86,7 +87,7 @@ class Database:
         '''
         for inputDir in self.inputDirs:
             if folderName in regenIgnoreList(inputDir):
-                self.logger.info("{0} in ignore list, will not be added to db or uploaded".format(folderName))
+                self.logger.info("{0} in ignore list, will not be added to db or FINISHED".format(folderName))
                 return False
             for folder in os.listdir(inputDir):
                 if re.match(self.folderRegex, folder) and folderName==folder:
@@ -94,32 +95,30 @@ class Database:
         self.logger.error("Please check folder name {} and/or its location".format(folderName))
         return False
 
-    def findFolder(self, folderName):
-        '''
-        Function to check if folder in ignore file or exists in any directories
-        '''
-        for inputDir in self.inputDirs:
-            for folder in os.listdir(inputDir):
-                if re.match(self.folderRegex, folder) and folderName==folder:
-                    return inputDir
-        self.logger.error("Error finding {} in all input locations".format(folderName))
-        raise Exception("Error finding {} in all input locations".format(folderName))
-
-    def watchDirectories(self, watchFile):
+    def watchDirectories(self, watchFile, inOutMap):
         '''
         Check for watch file and prep folder if matched
+        TODO increase performance!
         '''
+        runs = []
         for inputDir in self.inputDirs:
             for folder in os.listdir(inputDir):
-                if re.match(self.folderRegex, folder): #Check if regex matches directory name
-                    for subFolder in os.listdir(inputDir+folder): #Enumerate subfolders in directory
-                        if subFolder == watchFile: #Check if any subfolders matches watchfile from config
+                #Check if regex matches directory name
+                if re.match(self.folderRegex, folder):
+                    #Enumerate subfolders in directory
+                    for subFolder in os.listdir(inputDir+folder):
+                        #Check if any subfolders matches watchfile from config
+                        if subFolder == watchFile:
+                            #Add to list to be uploaded
+                            newRun = Run(folder, inputDir, inOutMap[inputDir])
+                            runs.append(newRun)
                             self.logger.info("Adding {0} to DB".format(folder))
                             self.prepFolders(folder)
+        return runs
 
     def markFileInDb(self, folderName, markAs):
         '''
-        Mark folder as UPLOADED or FAILED in db
+        Mark folder as FINISHED or FAILED in db
         '''
         c = self.connection.cursor()
         c.execute(self.queries["markfileindb"].format(self.folderTable, markAs, folderName))
