@@ -62,8 +62,6 @@ def main(args):
                 "pem": serverInfo["pemfile"],
                 "host": serverInfo["host"],
                 "login": serverInfo["loginid"],
-                "inDir": None,
-                "outDir": None,
                 "chmod": commands["chmodcommand"],
                 "rsync": commands["rsynccommand"],
                 "sshformat": sshformat,
