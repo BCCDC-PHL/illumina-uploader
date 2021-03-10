@@ -55,30 +55,30 @@ def main(args):
         exit(0)
 
     try:
-        while(True):
-            sshformat = commands["sshwincommand"] if platform.system()=="Windows" else commands["sshnixcommand"]
-            #Collect rsync command info
-            runArgs = {
-                "pem": serverInfo["pemfile"],
-                "host": serverInfo["host"],
-                "login": serverInfo["loginid"],
-                "chmod": commands["chmodcommand"],
-                "rsync": commands["rsynccommand"],
-                "sshformat": sshformat,
-                "scp": commands["scpcommand"],
-                "logger": logger,
-                "debug": isDebug,
-                "starttime": getDateTimeNowIso(),
-            }
-            #Call fabric tasks
-            if  single_run:
-                logger.info("Start One-off run for single directory {0}".format(single_run))
-                runArgs["inFile"] = single_run
-                uploadRunToSabin(context, runArgs)
-                addToList(inputDirs, single_run, "ignore.txt")
-                logger.info("Folder {0} added to ignore list".format(single_run))
-                break
-            else:
+        sshformat = commands["sshwincommand"] if platform.system()=="Windows" else commands["sshnixcommand"]
+        #Collect rsync command info
+        runArgs = {
+            "pem": serverInfo["pemfile"],
+            "host": serverInfo["host"],
+            "login": serverInfo["loginid"],
+            "chmod": commands["chmodcommand"],
+            "rsync": commands["rsynccommand"],
+            "sshformat": sshformat,
+            "scp": commands["scpcommand"],
+            "logger": logger,
+            "debug": isDebug,
+            "starttime": getDateTimeNowIso(),
+        }
+        #Call fabric tasks
+        if  single_run:
+            logger.info("Start One-off run for single directory {0}".format(single_run))
+            runArgs["inFile"] = single_run
+            uploadRunToSabin(context, runArgs)
+            addToList(inputDirs, single_run, "ignore.txt")
+            logger.info("Folder {0} added to ignore list".format(single_run))
+            break
+        else:
+            while(True):
                 logger.info("Start Watching Directory..")
                 #runsCache stores run info for later retrieval. TODO optimize
                 runsCache = dbObject.watchDirectories(localInfo["watchfilepath"], inOutMap)

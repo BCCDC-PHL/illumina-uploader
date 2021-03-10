@@ -41,7 +41,6 @@ def uploadRunToSabin(context, args):
         result = context.run(step1)
         #STEP 2: create upload_complete.json
         step2 = "echo {{\"timestamp_start\":\"{0}\",\"timestamp_end\":\"{1}\"}} > {2}".format(args["starttime"], getDateTimeNowIso(), copyfilename)
-        #step2 = "echo {0} > {1}".format(getDateTimeNow(), copyfilename)
         if debug: logger.info("Running rsyncFolder create upload_complete.json: "+step2)
         result = context.run(step2)
         #STEP 3: rsync upload_complete.json
@@ -57,7 +56,6 @@ def uploadRunToSabin(context, args):
         formatStdout(result, logger)
         return True
 
-'''
 @task
 def calcMD5Hash(context, args):
     # Calculate MD5 Hash given directory name. Calculation speed is 1Gb/Sec
@@ -71,5 +69,3 @@ def calcMD5Hash(context, args):
     else:
         formatStdout(result, logger)
         logger.info("Completed: calcMD5Hash")
-
-'''
