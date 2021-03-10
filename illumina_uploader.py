@@ -69,15 +69,14 @@ def main(args):
             "debug": isDebug,
             "starttime": getDateTimeNowIso(),
         }
-        #Call fabric tasks
         if  single_run:
             logger.info("Start One-off run for single directory {0}".format(single_run))
             runArgs["inFile"] = single_run
             uploadRunToSabin(context, runArgs)
             addToList(inputDirs, single_run, "ignore.txt")
             logger.info("Folder {0} added to ignore list".format(single_run))
-            break
         else:
+            #Call fabric tasks
             while(True):
                 logger.info("Start Watching Directory..")
                 #runsCache stores run info for later retrieval. TODO optimize
@@ -107,10 +106,10 @@ def main(args):
                     mailArgs["subject"] = emailInfo["mailsubject"].format(status=status)
                     mailArgs["body"] = emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=endTime)
                     sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
-            #Goto sleep (displayed in minutes)
-            logger.info("Sleeping for {0} minutes".format(localInfo["sleeptime"]))
-            sleeptimeInSeconds = int(localInfo["sleeptime"])*60
-            time.sleep(sleeptimeInSeconds)
+                #Goto sleep (displayed in minutes)
+                logger.info("Sleeping for {0} minutes".format(localInfo["sleeptime"]))
+                sleeptimeInSeconds = int(localInfo["sleeptime"])*60
+                time.sleep(sleeptimeInSeconds)
     except OSError as error:
         logger.error("Fatal OS / network error: {0}".format(error))
     except KeyboardInterrupt as error:

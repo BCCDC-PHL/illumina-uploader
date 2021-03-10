@@ -106,9 +106,9 @@ def convDirToRsyncFormat(inputDir):
 
 def sendEmailUsingPlover(emailUrl, args):
     '''
-    Format and Add time delay before sending out email
+    Format and add 3 sec delay before sending out email
     '''
-    time.sleep(5)
+    time.sleep(3)
     emailUrl = emailUrl.format_map(args)
     emailUrl = emailUrl.replace("|","%7C").replace(" ","%20")
     response = urlopen(emailUrl)
