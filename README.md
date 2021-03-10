@@ -115,10 +115,10 @@ See [config.ini.template](config.ini.template) for format details.
      - ~~fix crash when rsync network error~~
      - ~~update config.ini.template~~
 - v0.5
-    - simplify sending emails
+    - ~~fix FileNotFoundError~~
     - rerwite db class to use run class for folder tracking
     - fix dry run
-    - Add pytest
+    - Add pytests
     - update upload_complete.json: checksum, input_directory, output_directory
     - quick create ignore.txt file from a given input folder
 - v0.6   - Web UI using flask/django

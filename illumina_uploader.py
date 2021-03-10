@@ -111,8 +111,10 @@ def main(args):
             logger.info("Sleeping for {0} minutes".format(localInfo["sleeptime"]))
             sleeptimeInSeconds = int(localInfo["sleeptime"])*60
             time.sleep(sleeptimeInSeconds)
+    except OSError as error:
+        logger.error("Fatal OS / network error: {0}".format(error))
     except KeyboardInterrupt as error:
-            logger.info("Shutting down Directory Watch. Exiting.")
+        logger.info("Shutting down Directory Watch. Exiting.")
     
 
 if __name__ == "__main__":
