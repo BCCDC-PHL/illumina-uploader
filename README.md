@@ -8,48 +8,51 @@ Lightweight program for Illumina sequencer that watches for new sequence folders
 - Cross platform compatible
 
 ## Installing
-Download latest release zip from https://github.com/BCCDC-PHL/illumina-uploader/releases
-
-Unzip and Goto directory and activate Python Virtual Environment
+1. Download latest release zip from https://github.com/BCCDC-PHL/illumina-uploader/releases
+2. Unzip the contents into a directory
+3. Copy correct config.ini file into directory
+4. Open cygwin (https://www.cygwin.com/) in Admin mode and cd into the unzipped directory
+5. Create virtual env
 ```
 python -m venv venv
+```
+6. Activate virtual python environment
+```
 source ./venv/bin/activate
 ```
-
-Get all required python packages
+7. Install dependencies
 ```
 pip install -r requirements.txt
 ```
-
-## Running
-
-### Normal Commands
-
-First time run (initialize database)
+8. Initialize the database
 ```
 python illumina_uploader.py --create-db
 ```
 
-Normal Run
+## Running
+
+### Typical Run Command
 ```
 python illumina_uploader.py
 ```
+
+To exit, use "Ctrl + C" keyboard combo. Its safe!
+
+## Advanced Commands
 
 Backup database (recommended once a week)
 ```
 python illumina_uploader.py --backup-db
 ```
 
-## Advanced Commands
+Delete database (useful for testing.. backup db first!)
+```
+rm local.db
+```
 
 To upload one specific folder (will not update db, rather add to ignore list)
 ```
 python illumina_uploader.py --upload-single-run 200619_M00325_0209_000000000-J6M35
-```
-
-Delete database (useful for testing.. backup db first!)
-```
-rm local.db
 ```
 
 Specify custom config and sequencer
@@ -116,30 +119,29 @@ See [config.ini.template](config.ini.template) for format details.
      - ~~update config.ini.template~~
 - v0.5
     - ~~fix FileNotFoundError~~
-    - rerwite db class to use run class for folder tracking
+    - Fix socket error
+    - new firstrun.sh script
     - fix dry run
     - Add pytests
     - update upload_complete.json: checksum, input_directory, output_directory
+- v0.6
+    - rerwite db class to use run class for folder tracking
     - quick create ignore.txt file from a given input folder
-- v0.6   - Web UI using flask/django
-- v0.7   - Advanced Data integrity check
+- v0.7   - Web UI using flask/django
 - v0.8   - Installer and one script run
 - v0.9   - Progress bar in UI using API
 - v1.0   - Long Term Release (LTM), New feature freeze, only bugfixes
 
 ## Troubleshooting
-Problem: `$'\r': command not found`
-
+### Problem: `$'\r': command not found`
 Solution: Add at the end of `~/.bash_profile` (in /home/USER):
 ```
 export SHELLOPTS
 set -o igncr
 ```
 
-Problem: `Error: dup() in/out/err failed`
-
+### Problem: `Error: dup() in/out/err failed`
 Solution: Install ssh/rsync from cygwin installer. Don't use system ones.
 
-Problem: How to run SQL statements in SQLITE EXPLORER in VSCode?
-
+### Problem: How to run SQL statements in SQLITE EXPLORER in VSCode?
 Solution: Ctrl + Shift + Q

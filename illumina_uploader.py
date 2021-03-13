@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import argparse, platform, sqlite3, time
+import argparse, platform, sqlite3, time, socket
 from fabfile import uploadRunToSabin, checkupSystemUptime
 from invoke.context import Context
 from configparser import ConfigParser
@@ -78,7 +78,7 @@ def main(args):
         else:
             #Call fabric tasks
             while(True):
-                logger.info("Start Watching Directory..")
+                logger.info("Start Watching Directores: {0}".format(",".join(inputDirs)))
                 #runsCache stores run info for later retrieval. TODO optimize
                 runsCache = dbObject.watchDirectories(localInfo["watchfilepath"], inOutMap)
                 foldersToUpload = dbObject.getFolderList()
@@ -87,31 +87,37 @@ def main(args):
                     runArgs["inFile"] = folderToUpload
                     #Mail send before start
                     status = "STARTED"
+                    reason = ""
                     startTime = getDateTimeNow()
                     mailArgs = {
                         "debug": isDebug,
                         "token": emailInfo["emailtoken"],
                         "mailto": emailInfo["mailto"],
                         "subject": emailInfo["mailsubject"].format(status=status),
-                        "body": emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=startTime)
+                        "body": emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=startTime, reason=reason)
                     }
                     sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
                     runArgs["runscache"] = runsCache
-                    isSuccessful = uploadRunToSabin(context, runArgs)
+                    isSuccessful = False
+                    try:
+                        isSuccessful = uploadRunToSabin(context, runArgs)
+                        logger.info("pausing... pls test")
+                        time.sleep(30)
+                    except (OSError, socket.error) as error:
+                        logger.error("Fatal OS / network error: {0}".format(error))
+                        reason = error
                     endTime = getDateTimeNow()
                     status = "FINISHED" if isSuccessful else "FAILED"
                     logger.info("Marking in DB as {0}".format(status))
                     dbObject.markFileInDb(folderToUpload, status)
                     #Mail send after done, update subject and body
                     mailArgs["subject"] = emailInfo["mailsubject"].format(status=status)
-                    mailArgs["body"] = emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=endTime)
+                    mailArgs["body"] = emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=endTime, reason=reason)
                     sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
                 #Goto sleep (displayed in minutes)
                 logger.info("Sleeping for {0} minutes".format(localInfo["sleeptime"]))
                 sleeptimeInSeconds = int(localInfo["sleeptime"])*60
                 time.sleep(sleeptimeInSeconds)
-    except OSError as error:
-        logger.error("Fatal OS / network error: {0}".format(error))
     except KeyboardInterrupt as error:
         logger.info("Shutting down Directory Watch. Exiting.")
     
