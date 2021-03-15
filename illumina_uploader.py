@@ -80,45 +80,53 @@ def main(args):
             while(True):
                 logger.info("Start Watching Directores: {0}".format(",".join(inputDirs)))
                 #runsCache stores run info for later retrieval. TODO optimize
-                runsCache = dbObject.watchDirectories(localInfo["watchfilepath"], inOutMap)
+                runsCache = None
+                #Default mail args
+                mailArgs = {
+                    "debug": isDebug,
+                    "token": emailInfo["emailtoken"],
+                    "mailto": emailInfo["mailto"]
+                }
+                try:
+                    runsCache = dbObject.watchDirectories(localInfo["watchfilepath"], inOutMap)
+                    logger.info("TRY NOW.. YOU GOT 30 SECONDS")
+                    #time.sleep(30)
+                except KeyboardInterrupt as error:
+                    reason = "{0}. Network drive needs to be reconnected. Will retry again in {1} minutes".format(error, localInfo["sleeptime"])
+                    logger.error(reason)
+                    mailArgs["subject"] = emailInfo["mailsubject"].format(status="ERROR"),
+                    mailArgs["body"] = emailInfo["mailbody"].format(folderToUpload="cannot be read", status="ERROR", timeOfMail=getDateTimeNow(), reason=reason)
+                    sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
                 foldersToUpload = dbObject.getFolderList()
-                for folderName in foldersToUpload:
-                    folderToUpload = folderName[0]
-                    runArgs["inFile"] = folderToUpload
-                    #Mail send before start
-                    status = "STARTED"
-                    reason = ""
-                    startTime = getDateTimeNow()
-                    mailArgs = {
-                        "debug": isDebug,
-                        "token": emailInfo["emailtoken"],
-                        "mailto": emailInfo["mailto"],
-                        "subject": emailInfo["mailsubject"].format(status=status),
-                        "body": emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=startTime, reason=reason)
-                    }
-                    sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
-                    runArgs["runscache"] = runsCache
-                    isSuccessful = False
-                    try:
-                        isSuccessful = uploadRunToSabin(context, runArgs)
-                        logger.info("pausing... pls test")
-                        time.sleep(30)
-                    except (OSError, socket.error) as error:
-                        logger.error("Fatal OS / network error: {0}".format(error))
-                        reason = error
-                    endTime = getDateTimeNow()
-                    status = "FINISHED" if isSuccessful else "FAILED"
-                    logger.info("Marking in DB as {0}".format(status))
-                    dbObject.markFileInDb(folderToUpload, status)
-                    #Mail send after done, update subject and body
-                    mailArgs["subject"] = emailInfo["mailsubject"].format(status=status)
-                    mailArgs["body"] = emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=endTime, reason=reason)
-                    sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
+                if runsCache:
+                    for folderName in foldersToUpload:
+                        folderToUpload = folderName[0]
+                        runArgs["inFile"] = folderToUpload
+                        #Mail send before start
+                        status = "STARTED"
+                        reason = ""
+                        mailArgs["subject"] = emailInfo["mailsubject"].format(status=status)
+                        mailArgs["body"] = emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=getDateTimeNow(), reason=reason)
+                        sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
+                        runArgs["runscache"] = runsCache
+                        isSuccessful = False
+                        try:
+                            isSuccessful = uploadRunToSabin(context, runArgs)
+                        except (socket.error, OSError) as error:
+                            logger.error("Fatal OS / network error: {0}".format(error))
+                            reason = "Fatal OS / network error.. will try again in {0} minutes".format(localInfo["sleeptime"])
+                        status = "FINISHED" if isSuccessful else "FAILED"
+                        logger.info("Marking in DB as {0}".format(status))
+                        dbObject.markFileInDb(folderToUpload, status)
+                        #Mail send after done, update subject and body
+                        mailArgs["subject"] = emailInfo["mailsubject"].format(status=status)
+                        mailArgs["body"] = emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=getDateTimeNow(), reason=reason)
+                        sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
                 #Goto sleep (displayed in minutes)
                 logger.info("Sleeping for {0} minutes".format(localInfo["sleeptime"]))
                 sleeptimeInSeconds = int(localInfo["sleeptime"])*60
                 time.sleep(sleeptimeInSeconds)
-    except KeyboardInterrupt as error:
+    except FileNotFoundError as error:
         logger.info("Shutting down Directory Watch. Exiting.")
     
 

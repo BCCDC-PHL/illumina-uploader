@@ -119,11 +119,12 @@ See [config.ini.template](config.ini.template) for format details.
      - ~~update config.ini.template~~
 - v0.5
     - ~~fix FileNotFoundError~~
-    - Fix socket error
-    - new firstrun.sh script
+    - ~~Fix socket error~~
+    - ~~new firstrun.sh script NOT WORKING CORRECTLY~~
+    - Fix upload_complete.json: use scp instead of rsync
+    - Add upload_complete.json: checksum, input_directory, output_directory
     - fix dry run
     - Add pytests
-    - update upload_complete.json: checksum, input_directory, output_directory
 - v0.6
     - rerwite db class to use run class for folder tracking
     - quick create ignore.txt file from a given input folder
