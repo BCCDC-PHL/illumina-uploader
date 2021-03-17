@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import argparse, platform, sqlite3, time, socket
-from fabfile import uploadRunToSabin, checkupSystemUptime
+from fabfile import checkupSystemUptime, uploadRunToSabin, scpUploadCompleteJson
 from invoke.context import Context
 from configparser import ConfigParser
 from utils import setupLogger, addToList, sendEmailUsingPlover, getDateTimeNow, getDateTimeNowIso
@@ -89,7 +89,7 @@ def main(args):
                 }
                 try:
                     runsCache = dbObject.watchDirectories(localInfo["watchfilepath"], inOutMap)
-                    logger.info("TRY NOW.. YOU GOT 30 SECONDS")
+                    #logger.info("TRY NOW.. YOU GOT 30 SECONDS")
                     #time.sleep(30)
                 except KeyboardInterrupt as error:
                     reason = "{0}. Network drive needs to be reconnected. Will retry again in {1} minutes".format(error, localInfo["sleeptime"])
@@ -118,6 +118,8 @@ def main(args):
                         status = "FINISHED" if isSuccessful else "FAILED"
                         logger.info("Marking in DB as {0}".format(status))
                         dbObject.markFileInDb(folderToUpload, status)
+                        #Create json file
+                        scpUploadCompleteJson(context, runArgs)
                         #Mail send after done, update subject and body
                         mailArgs["subject"] = emailInfo["mailsubject"].format(status=status)
                         mailArgs["body"] = emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=getDateTimeNow(), reason=reason)

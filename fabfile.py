@@ -32,21 +32,40 @@ def uploadRunToSabin(context, args):
     
     logger = args["logger"]
     debug = args["debug"]
-    copyfilename = args["inDir"] + args["inFile"] + "/upload_complete.json"
     args["inDir"] = convDirToRsyncFormat(args["inDir"])
     try:
-        #STEP 1: rsync run directory
-        step1 = args["rsync"].format_map(args)
-        if debug: logger.info("Running rsyncFolder run directory: "+step1)
-        result = context.run(step1)
-        #STEP 2: create upload_complete.json
-        step2 = "echo {{\"timestamp_start\":\"{0}\",\"timestamp_end\":\"{1}\"}} > {2}".format(args["starttime"], getDateTimeNowIso(), copyfilename)
-        if debug: logger.info("Running rsyncFolder create upload_complete.json: "+step2)
-        result = context.run(step2)
-        #STEP 3: rsync upload_complete.json
-        step3 = args["rsync"].format_map(args)
-        if debug: logger.info("Running rsyncFolder rsync upload_complete.json: "+step3)
-        result = context.run(step3)
+        #rsync run directory
+        rsyncStep = args["rsync"].format_map(args)
+        if debug: logger.info("Running rsyncFolder run directory: "+rsyncStep)
+        result = context.run(rsyncStep)
+    except (UnexpectedExit, KeyboardInterrupt) as error:
+        logger.info("Interrupted!")
+        logger.info(error)
+        return False
+    else:
+        logger.info("Please wait.. writing logfile")
+        formatStdout(result, logger)
+        return True
+
+@task
+def scpUploadCompleteJson(context, args):
+    logger = args["logger"]
+    debug = args["debug"]
+    for possibleRun in args["runscache"]:
+        if args["inFile"] == possibleRun.name:
+            args["outDir"] = possibleRun.outputDir
+    args["inDir"] = "temp/"
+    args["outDir"] = args["outDir"] + args["inFile"] + "/"
+    args["filename"] = "upload_complete.json" #Where illumina-uploader is run from
+    try:
+        #Create upload_complete.json
+        createStep = "echo {{\"timestamp_start\":\"{0}\",\"timestamp_end\":\"{1}\"}} > {2}".format(args["starttime"], getDateTimeNowIso(), args["inDir"]+args["filename"])
+        if debug: logger.info("Create upload_complete.json: "+createStep)
+        result = context.run(createStep)
+        #SCP upload_complete.json
+        scpStep = args["scp"].format_map(args)
+        if debug: logger.info("SCP upload_complete.json: "+scpStep)
+        result = context.run(scpStep)
     except (UnexpectedExit, KeyboardInterrupt) as error:
         logger.info("Interrupted!")
         logger.info(error)
