@@ -6,7 +6,7 @@ from utils import formatStdout, getDateTimeNow, getDateTimeNowIso, convDirToRsyn
 @task
 def checkupSystemUptime(context, args):
     '''
-    Test fabric task
+    Test fabric task to check uptime on remote server
     '''
     logger = args["logger"]
     try:
@@ -20,9 +20,9 @@ def checkupSystemUptime(context, args):
         logger.info("Completed: uptime")
 
 @task
-def uploadRunToSabin(context, args):
+def uploadRunToServer(context, args):
     '''
-    Rsync fabric task
+    Rsync correct run directory to correct remote server location
     '''
     #Get inDir and outDir from runsCache
     for possibleRun in args["runscache"]:
@@ -49,17 +49,23 @@ def uploadRunToSabin(context, args):
 
 @task
 def scpUploadCompleteJson(context, args):
+    '''
+    Create upload_complete.json with updated times in temp location
+    SCP upload_complete.json to correct remote server location
+    '''
     logger = args["logger"]
     debug = args["debug"]
     for possibleRun in args["runscache"]:
         if args["inFile"] == possibleRun.name:
-            args["outDir"] = possibleRun.outputDir
+            actualInDir = possibleRun.inputDir
+            actualOutDir = possibleRun.outputDir
     args["inDir"] = "temp/"
-    args["outDir"] = args["outDir"] + args["inFile"] + "/"
-    args["filename"] = "upload_complete.json" #Where illumina-uploader is run from
+    args["outDir"] = actualOutDir + args["inFile"] + "/"
+    args["filename"] = "upload_complete.json"
     try:
         #Create upload_complete.json
-        createStep = "echo {{\"timestamp_start\":\"{0}\",\"timestamp_end\":\"{1}\"}} > {2}".format(args["starttime"], getDateTimeNowIso(), args["inDir"]+args["filename"])
+        createStepString = ""
+        createStep = "echo {{\"timestamp_start\":\"{0}\",\"timestamp_end\":\"{1}\",\"input_directory\":\"{2}\",\"output_directory\":\"{3}\"}} > {4}".format(args["starttime"], getDateTimeNowIso(), actualInDir, actualOutDir, args["inDir"]+args["filename"])
         if debug: logger.info("Create upload_complete.json: "+createStep)
         result = context.run(createStep)
         #SCP upload_complete.json
@@ -77,7 +83,9 @@ def scpUploadCompleteJson(context, args):
 
 @task
 def calcMD5Hash(context, args):
-    # Calculate MD5 Hash given directory name. Calculation speed is 1Gb/Sec
+    '''
+    Calculate MD5 Hash given directory name. Calculation speed is around 1Gb/Sec
+    '''
     logger = args["logger"]
     try:
         logger.info("Running: calcMD5Hash")

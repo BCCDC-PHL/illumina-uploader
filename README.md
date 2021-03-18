@@ -117,15 +117,16 @@ See [config.ini.template](config.ini.template) for format details.
      - ~~fix timezone in log messages~~
      - ~~fix crash when rsync network error~~
      - ~~update config.ini.template~~
-- v0.5
+- ~~v0.5~~
     - ~~fix FileNotFoundError~~
     - ~~Fix socket error~~
     - ~~new firstrun.sh script NOT WORKING CORRECTLY~~
-    - Fix upload_complete.json: use scp instead of rsync
-    - Add upload_complete.json: checksum, input_directory, output_directory
+    - ~~Fix upload_complete.json: use scp instead of rsync~~
+    - ~~Add upload_complete.json: input_directory, output_directory~~
+- v0.6
     - fix dry run
     - Add pytests
-- v0.6
+    - Fix single directory uploads
     - rerwite db class to use run class for folder tracking
     - quick create ignore.txt file from a given input folder
 - v0.7   - Web UI using flask/django

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import argparse, platform, sqlite3, time, socket
-from fabfile import checkupSystemUptime, uploadRunToSabin, scpUploadCompleteJson
+from fabfile import checkupSystemUptime, uploadRunToServer, scpUploadCompleteJson
 from invoke.context import Context
 from configparser import ConfigParser
 from utils import setupLogger, addToList, sendEmailUsingPlover, getDateTimeNow, getDateTimeNowIso
@@ -72,7 +72,7 @@ def main(args):
         if  single_run:
             logger.info("Start One-off run for single directory {0}".format(single_run))
             runArgs["inFile"] = single_run
-            uploadRunToSabin(context, runArgs)
+            uploadRunToServer(context, runArgs)
             addToList(inputDirs, single_run, "ignore.txt")
             logger.info("Folder {0} added to ignore list".format(single_run))
         else:
@@ -111,7 +111,7 @@ def main(args):
                         runArgs["runscache"] = runsCache
                         isSuccessful = False
                         try:
-                            isSuccessful = uploadRunToSabin(context, runArgs)
+                            isSuccessful = uploadRunToServer(context, runArgs)
                         except (socket.error, OSError) as error:
                             logger.error("Fatal OS / network error: {0}".format(error))
                             reason = "Fatal OS / network error.. will try again in {0} minutes".format(localInfo["sleeptime"])
