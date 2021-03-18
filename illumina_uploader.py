@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-import argparse, platform, sqlite3, time
-from fabfile import uploadRunToSabin, checkupSystemUptime
+import argparse, platform, sqlite3, time, socket
+from fabfile import checkupSystemUptime, uploadRunToServer, scpUploadCompleteJson
 from invoke.context import Context
 from configparser import ConfigParser
 from utils import setupLogger, addToList, sendEmailUsingPlover, getDateTimeNow, getDateTimeNowIso
@@ -55,64 +55,81 @@ def main(args):
         exit(0)
 
     try:
-        while(True):
-            sshformat = commands["sshwincommand"] if platform.system()=="Windows" else commands["sshnixcommand"]
-            #Collect rsync command info
-            runArgs = {
-                "pem": serverInfo["pemfile"],
-                "host": serverInfo["host"],
-                "login": serverInfo["loginid"],
-                "chmod": commands["chmodcommand"],
-                "rsync": commands["rsynccommand"],
-                "sshformat": sshformat,
-                "scp": commands["scpcommand"],
-                "logger": logger,
-                "debug": isDebug,
-                "starttime": getDateTimeNowIso(),
-            }
+        sshformat = commands["sshwincommand"] if platform.system()=="Windows" else commands["sshnixcommand"]
+        #Collect rsync command info
+        runArgs = {
+            "pem": serverInfo["pemfile"],
+            "host": serverInfo["host"],
+            "login": serverInfo["loginid"],
+            "chmod": commands["chmodcommand"],
+            "rsync": commands["rsynccommand"],
+            "sshformat": sshformat,
+            "scp": commands["scpcommand"],
+            "logger": logger,
+            "debug": isDebug,
+            "starttime": getDateTimeNowIso(),
+        }
+        if  single_run:
+            logger.info("Start One-off run for single directory {0}".format(single_run))
+            runArgs["inFile"] = single_run
+            uploadRunToServer(context, runArgs)
+            addToList(inputDirs, single_run, "ignore.txt")
+            logger.info("Folder {0} added to ignore list".format(single_run))
+        else:
             #Call fabric tasks
-            if  single_run:
-                logger.info("Start One-off run for single directory {0}".format(single_run))
-                runArgs["inFile"] = single_run
-                uploadRunToSabin(context, runArgs)
-                addToList(inputDirs, single_run, "ignore.txt")
-                logger.info("Folder {0} added to ignore list".format(single_run))
-                break
-            else:
-                logger.info("Start Watching Directory..")
+            while(True):
+                logger.info("Start Watching Directores: {0}".format(",".join(inputDirs)))
                 #runsCache stores run info for later retrieval. TODO optimize
-                runsCache = dbObject.watchDirectories(localInfo["watchfilepath"], inOutMap)
+                runsCache = None
+                #Default mail args
+                mailArgs = {
+                    "debug": isDebug,
+                    "token": emailInfo["emailtoken"],
+                    "mailto": emailInfo["mailto"]
+                }
+                try:
+                    runsCache = dbObject.watchDirectories(localInfo["watchfilepath"], inOutMap)
+                    #logger.info("TRY NOW.. YOU GOT 30 SECONDS")
+                    #time.sleep(30)
+                except KeyboardInterrupt as error:
+                    reason = "{0}. Network drive needs to be reconnected. Will retry again in {1} minutes".format(error, localInfo["sleeptime"])
+                    logger.error(reason)
+                    mailArgs["subject"] = emailInfo["mailsubject"].format(status="ERROR"),
+                    mailArgs["body"] = emailInfo["mailbody"].format(folderToUpload="cannot be read", status="ERROR", timeOfMail=getDateTimeNow(), reason=reason)
+                    sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
                 foldersToUpload = dbObject.getFolderList()
-                for folderName in foldersToUpload:
-                    folderToUpload = folderName[0]
-                    runArgs["inFile"] = folderToUpload
-                    #Mail send before start
-                    status = "STARTED"
-                    startTime = getDateTimeNow()
-                    mailArgs = {
-                        "debug": isDebug,
-                        "token": emailInfo["emailtoken"],
-                        "mailto": emailInfo["mailto"],
-                        "subject": emailInfo["mailsubject"].format(status=status),
-                        "body": emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=startTime)
-                    }
-                    sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
-                    runArgs["runscache"] = runsCache
-                    isSuccessful = uploadRunToSabin(context, runArgs)
-                    endTime = getDateTimeNow()
-                    status = "FINISHED" if isSuccessful else "FAILED"
-                    logger.info("Marking in DB as {0}".format(status))
-                    dbObject.markFileInDb(folderToUpload, status)
-                    #Mail send after done, update subject and body
-                    mailArgs["subject"] = emailInfo["mailsubject"].format(status=status)
-                    mailArgs["body"] = emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=endTime)
-                    sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
-            #Goto sleep (displayed in minutes)
-            logger.info("Sleeping for {0} minutes".format(localInfo["sleeptime"]))
-            sleeptimeInSeconds = int(localInfo["sleeptime"])*60
-            time.sleep(sleeptimeInSeconds)
-    except KeyboardInterrupt as error:
-            logger.info("Shutting down Directory Watch. Exiting.")
+                if runsCache:
+                    for folderName in foldersToUpload:
+                        folderToUpload = folderName[0]
+                        runArgs["inFile"] = folderToUpload
+                        #Mail send before start
+                        status = "STARTED"
+                        reason = ""
+                        mailArgs["subject"] = emailInfo["mailsubject"].format(status=status)
+                        mailArgs["body"] = emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=getDateTimeNow(), reason=reason)
+                        sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
+                        runArgs["runscache"] = runsCache
+                        isSuccessful = False
+                        try:
+                            isSuccessful = uploadRunToServer(context, runArgs)
+                        except (socket.error, OSError) as error:
+                            logger.error("Fatal OS / network error: {0}".format(error))
+                            reason = "Fatal OS / network error.. will try again in {0} minutes".format(localInfo["sleeptime"])
+                        status = "FINISHED" if isSuccessful else "FAILED"
+                        logger.info("Marking in DB as {0}".format(status))
+                        dbObject.markFileInDb(folderToUpload, status)
+                        #Create json file
+                        scpUploadCompleteJson(context, runArgs)
+                        #Mail send after done, update subject and body
+                        mailArgs["subject"] = emailInfo["mailsubject"].format(status=status)
+                        mailArgs["body"] = emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=getDateTimeNow(), reason=reason)
+                        sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
+                #Goto sleep (displayed in minutes)
+                logger.info("Sleeping for {0} minutes".format(localInfo["sleeptime"]))
+                sleeptimeInSeconds = int(localInfo["sleeptime"])*60
+                time.sleep(sleeptimeInSeconds)
+    except FileNotFoundError as error:
+        logger.info("Shutting down Directory Watch. Exiting.")
     
 
 if __name__ == "__main__":
