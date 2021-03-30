@@ -124,12 +124,14 @@ See [config.ini.template](config.ini.template) for format details.
     - ~~Fix upload_complete.json: use scp instead of rsync~~
     - ~~Add upload_complete.json: input_directory, output_directory~~
 - v0.6
-    - fix dry run
+    - Fix upload_complete.json: timestamp_start, input_directory, output_directory and format
+    - Fix dry run
     - Add pytests
-    - Fix single directory uploads
+    - Fix single uploads
+- v0.7
     - rerwite db class to use run class for folder tracking
     - quick create ignore.txt file from a given input folder
-- v0.7   - Web UI using flask/django
+    - Web UI using flask/django
 - v0.8   - Installer and one script run
 - v0.9   - Progress bar in UI using API
 - v1.0   - Long Term Release (LTM), New feature freeze, only bugfixes
