@@ -60,9 +60,27 @@ Specify custom config and sequencer
 python illumina_uploader.py --config config.ini --sequencer miseq
 ```
 
-Dry run test
+Dry run test (does not upload anything or alters the db, useful for debugging)
 ```
 python illumina_uploader.py --dry-run
+```
+
+NextSeq specific, after a reboot:
+```
+1. Reboot the system
+2. login as the 'illumina-data-manager' user
+2. Mount the NAS:
+  - Open the 'Terminal' application
+  - cd illumina-uploader
+  - ./mountNextSeqs.sh
+  - When prompted for 'illumina-data-manager' enter password to run an admin process and press enter.
+  - When prompted for the 'nextseq-mac' enter password to mount a directory and press enter.
+    (You will be prompted for the 'nextseq-mac' password three times, once for each of the three NextSeq directories)
+3. Activate the virtual environment for the illumina uploader:
+  - source ./venv/bin/activate
+4. Start the illumina uploader:
+  - python illumina_uploader.py
+5. Many lines of text will scroll up the screen, showing which directories the uploader is checking for. There will be a message at the bottom saying that it will wait for 5 minutes before checking again. Leave the terminal window open and leave the illumina uploader running.
 ```
 
 ## CLI Parameters
