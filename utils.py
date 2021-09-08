@@ -108,10 +108,11 @@ def sendEmailUsingPlover(emailUrl, args):
     '''
     Format and add 3 sec delay before sending out email
     '''
-    time.sleep(3)
-    emailUrl = emailUrl.format_map(args)
-    emailUrl = emailUrl.replace("|","%7C").replace(" ","%20")
-    response = urlopen(emailUrl)
+    if not args['debug']:
+        time.sleep(3)
+        emailUrl = emailUrl.format_map(args)
+        emailUrl = emailUrl.replace("|","%7C").replace(" ","%20")
+        response = urlopen(emailUrl)
 
 def getCorrectTimezone(utc_now):
     '''
