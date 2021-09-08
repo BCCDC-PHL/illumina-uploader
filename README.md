@@ -38,7 +38,14 @@ python illumina_uploader.py
 
 To exit, use "Ctrl + C" keyboard combo. Its safe!
 
-## Advanced Commands
+To upload one specific folder (will update status to REUPLOAD in db)
+```
+python illumina_uploader.py --upload-single-run 200619_M00325_0209_000000000-J6M35
+```
+
+Keep the other illumina-uploader process running, and the file will be picked up.
+
+## Other Commands
 
 Backup database (recommended once a week)
 ```
@@ -50,20 +57,17 @@ Delete database (useful for testing.. backup db first!)
 rm local.db
 ```
 
-To upload one specific folder (will not update db, rather add to ignore list)
-```
-python illumina_uploader.py --upload-single-run 200619_M00325_0209_000000000-J6M35
-```
-
 Specify custom config and sequencer
 ```
 python illumina_uploader.py --config config.ini --sequencer miseq
 ```
 
-Dry run test (does not upload anything or alters the db, useful for debugging)
+Debug run (display debug message + don't send emails, useful for debugging)
 ```
-python illumina_uploader.py --dry-run
+python illumina_uploader.py --debug
 ```
+
+## Setup NextSeq after reboot
 
 NextSeq specific, after a reboot:
 ```
@@ -80,7 +84,7 @@ NextSeq specific, after a reboot:
   - source ./venv/bin/activate
 4. Start the illumina uploader:
   - python illumina_uploader.py
-5. Many lines of text will scroll up the screen, showing which directories the uploader is checking for. There will be a message at the bottom saying that it will wait for 5 minutes before checking again. Leave the terminal window open and leave the illumina uploader running.
+5. Done!
 ```
 
 ## CLI Parameters
@@ -94,7 +98,7 @@ Since the program is under active development, running arguments might change in
 | `--pem-file`         | location of pem file |
 | `--create-db`        | initialise sqlite database |
 | `--backup-db`        | backup sqlite database |
-| `--dry-run`          | test run that just prints uptime on remote server |
+| `--debug  `          | run in debug mode (more print messages + no emails) |
 
 ## Config file
 The program uses standard python configuration file along with runtime arguments. 
@@ -142,16 +146,16 @@ See [config.ini.template](config.ini.template) for format details.
     - ~~Fix upload_complete.json: use scp instead of rsync~~
     - ~~Add upload_complete.json: input_directory, output_directory~~
 - v0.6
+    - Fixed single uploads command "--upload-single-run"
+    - Fixed debug mode
+- v0.7
     - Fix upload_complete.json: timestamp_start, input_directory, output_directory and format
     - Fix dry run
     - Add pytests
-    - Fix single uploads
-- v0.7
-    - rerwite db class to use run class for folder tracking
     - quick create ignore.txt file from a given input folder
-    - Web UI using flask/django
-- v0.8   - Installer and one script run
-- v0.9   - Progress bar in UI using API
+- v0.8   - One page Web UI using flask/django
+         - rerwite db class to use run class for folder tracking
+- v0.9   - Installer and one script run
 - v1.0   - Long Term Release (LTM), New feature freeze, only bugfixes
 
 ## Troubleshooting
