@@ -69,12 +69,12 @@ def main(args):
             "debug": isDebug,
             "starttime": getDateTimeNowIso(),
         }
-        if  single_run:
+        if single_run:
             logger.info("Start One-off run for single directory {0}".format(single_run))
             runArgs["inFile"] = single_run
-            uploadRunToServer(context, runArgs)
-            addToList(inputDirs, single_run, "ignore.txt")
-            logger.info("Folder {0} added to ignore list".format(single_run))
+            dbObject.markFileInDb(single_run, "REUPLOAD")
+            logger.info("This process will exit now, and {0} will get picked up by the other illumina-uploader process".format(single_run))
+            exit(0)
         else:
             #Call fabric tasks
             while(True):
@@ -89,8 +89,6 @@ def main(args):
                 }
                 try:
                     runsCache = dbObject.watchDirectories(localInfo["watchfilepath"], inOutMap)
-                    #logger.info("TRY NOW.. YOU GOT 30 SECONDS")
-                    #time.sleep(30)
                 except KeyboardInterrupt as error:
                     reason = "{0}. Network drive needs to be reconnected. Will retry again in {1} minutes".format(error, localInfo["sleeptime"])
                     logger.error(reason)
@@ -135,11 +133,11 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Scan for new folders in a directory on Illumina sequencer and upload to remote server.")
     parser.add_argument("--config", help="location of config file (default is config.ini)")
-    parser.add_argument("--sequencer", help="miseq or nextseq (default taken from config file")
+    parser.add_argument("--sequencer", help="miseq or nextseq (default taken from config file)")
     parser.add_argument("--upload-single-run", help="location of single folder run to upload (will not update db)")
     parser.add_argument("--create-db", action="store_true", help="initialise sqlite database")
     parser.add_argument("--backup-db", action="store_true", help="backup sqlite database")
-    parser.add_argument("--dry-run", action="store_true", help="mock upload testing without uploading anything")
-    parser.add_argument("--debug", action="store_true", help="print debug data that should aid in problem solving")
+    parser.add_argument("--dry-run", action="store_true", help="mock upload testing without uploading anything [NOT IMPLEMENTED YET]")
+    parser.add_argument("--debug", action="store_true", help="print debug data and not send out emails")
     args = parser.parse_args()
     main(args)
