@@ -67,6 +67,21 @@ class Database:
             self.logger.error("Fatal error: {0}".format(error))
             exit(1)
 
+    def getAllFolders(self):
+        c = self.connection.cursor()
+        c.execute(self.queries["selectallfolders"].format(self.folderTable))
+        result = c.fetchall()
+        if result:
+            return result
+        else:
+            self.logger.info("No folders in database")
+            return []
+
+    def printDb(self):
+        folders = self.getAllFolders()
+        for folder in folders:
+            print(','.join(folder))
+
     def _insertFolders(self, folderName):
         '''
         Internal function for inserting folder data into db

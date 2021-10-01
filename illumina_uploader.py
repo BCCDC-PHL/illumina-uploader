@@ -53,6 +53,9 @@ def main(args):
     if args.backup_db:
         dbObject.backupDb()
         exit(0)
+    if args.print_db:
+        dbObject.printDb()
+        exit(0)
 
     try:
         sshformat = commands["sshwincommand"] if platform.system()=="Windows" else commands["sshnixcommand"]
@@ -137,6 +140,7 @@ if __name__ == "__main__":
     parser.add_argument("--upload-single-run", help="location of single folder run to upload (will not update db)")
     parser.add_argument("--create-db", action="store_true", help="initialise sqlite database")
     parser.add_argument("--backup-db", action="store_true", help="backup sqlite database")
+    parser.add_argument("--print-db", action="store_true", help="print sqlite database to stdout")
     parser.add_argument("--dry-run", action="store_true", help="mock upload testing without uploading anything [NOT IMPLEMENTED YET]")
     parser.add_argument("--debug", action="store_true", help="print debug data and not send out emails")
     args = parser.parse_args()
