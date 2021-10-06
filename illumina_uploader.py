@@ -70,7 +70,6 @@ def main(args):
             "scp": commands["scpcommand"],
             "logger": logger,
             "debug": isDebug,
-            "starttime": getDateTimeNowIso(),
         }
         if single_run:
             logger.info("Start One-off run for single directory {0}".format(single_run))
@@ -111,6 +110,7 @@ def main(args):
                         sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
                         runArgs["runscache"] = runsCache
                         isSuccessful = False
+                        runArgs["starttime"] = getDateTimeNowIso()
                         try:
                             isSuccessful = uploadRunToServer(context, runArgs)
                         except (socket.error, OSError) as error:
