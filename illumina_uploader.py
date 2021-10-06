@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import argparse, platform, sqlite3, time, socket, json
+import argparse, platform, sqlite3, time, socket
 from fabfile import checkupSystemUptime, uploadRunToServer, scpUploadCompleteJson
 from invoke.context import Context
 from configparser import ConfigParser
