@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import argparse, platform, sqlite3, time, socket
+import argparse, platform, sqlite3, time, socket, json
 from fabfile import checkupSystemUptime, uploadRunToServer, scpUploadCompleteJson
 from invoke.context import Context
 from configparser import ConfigParser
@@ -94,7 +94,8 @@ def main(args):
                     logger.error(reason)
                     mailArgs["subject"] = emailInfo["mailsubject"].format(status="ERROR"),
                     mailArgs["body"] = emailInfo["mailbody"].format(folderToUpload="cannot be read", status="ERROR", timeOfMail=getDateTimeNow(), reason=reason)
-                    sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
+                    if str(emailInfo.get("enabled", None)).lower() == "true":
+                        sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
                 foldersToUpload = dbObject.getFolderList()
                 if runsCache:
                     for folderName in foldersToUpload:
@@ -105,7 +106,8 @@ def main(args):
                         reason = ""
                         mailArgs["subject"] = emailInfo["mailsubject"].format(status=status)
                         mailArgs["body"] = emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=getDateTimeNow(), reason=reason)
-                        sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
+                        if str(emailInfo.get("enabled", None)).lower() == 'true':
+                            sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
                         runArgs["runscache"] = runsCache
                         isSuccessful = False
                         try:
@@ -121,7 +123,8 @@ def main(args):
                         #Mail send after done, update subject and body
                         mailArgs["subject"] = emailInfo["mailsubject"].format(status=status)
                         mailArgs["body"] = emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=getDateTimeNow(), reason=reason)
-                        sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
+                        if str(emailInfo.get("enabled", None)).lower() == 'true':
+                            sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
                 #Goto sleep (displayed in minutes)
                 logger.info("Sleeping for {0} minutes".format(localInfo["sleeptime"]))
                 sleeptimeInSeconds = int(localInfo["sleeptime"])*60
