@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+import json
+import os
+
 from invoke import UnexpectedExit
 from fabric import task
 from utils import formatStdout, getDateTimeNow, getDateTimeNowIso, convDirToRsyncFormat
@@ -65,9 +68,18 @@ def scpUploadCompleteJson(context, args):
     try:
         #Create upload_complete.json
         createStepString = ""
-        createStep = "echo {{\"timestamp_start\":\"{0}\",\"timestamp_end\":\"{1}\",\"input_directory\":\"{2}\",\"output_directory\":\"{3}\"}} > {4}".format(args["starttime"], getDateTimeNowIso(), actualInDir, actualOutDir, args["inDir"]+args["filename"])
-        if debug: logger.info("Create upload_complete.json: "+createStep)
-        result = context.run(createStep)
+        now = getDateTimeNowIso()
+        upload_complete = {
+            "timestamp_start": args["starttime"],
+            "timestamp_end": now,
+            "input_directory": os.path.join(actualInDir, args["inFile"]),
+            "output_directory": args["outDir"].rstrip('/'),
+        }
+        upload_complete_json_path = os.path.join(args["inDir"], args["filename"])
+        with open(upload_complete_json_path, 'w') as f:
+            json.dump(upload_complete, f, indent=2)
+            f.write("\n")
+        if debug: logger.info("Create upload_complete.json: " + json.dumps(upload_complete))
         #SCP upload_complete.json
         scpStep = args["scp"].format_map(args)
         if debug: logger.info("SCP upload_complete.json: "+scpStep)
