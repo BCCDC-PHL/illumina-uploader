@@ -145,11 +145,11 @@ See [config.ini.template](config.ini.template) for format details.
     - ~~new firstrun.sh script NOT WORKING CORRECTLY~~
     - ~~Fix upload_complete.json: use scp instead of rsync~~
     - ~~Add upload_complete.json: input_directory, output_directory~~
-- v0.6
-    - Fixed single uploads command "--upload-single-run"
+- ~~v0.6~~
+    - ~~Fixed single uploads command "--upload-single-run"~~
     - Fixed debug mode
 - v0.7
-    - Fix upload_complete.json: timestamp_start, input_directory, output_directory and format
+    - ~~Fix upload_complete.json: timestamp_start, input_directory, output_directory and format~~
     - Fix dry run
     - Add pytests
     - quick create ignore.txt file from a given input folder
