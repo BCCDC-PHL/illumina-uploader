@@ -115,7 +115,8 @@ def main():
                     logger.error(reason)
                     mailArgs["subject"] = emailInfo["mailsubject"].format(status="ERROR"),
                     mailArgs["body"] = emailInfo["mailbody"].format(folderToUpload="cannot be read", status="ERROR", timeOfMail=getDateTimeNow(), reason=reason)
-                    sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
+                    if str(emailInfo.get("enabled", None)).lower() == "true":
+                        sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
                 foldersToUpload = dbObject.getFolderList()
                 if runsCache:
                     for folderName in foldersToUpload:
@@ -126,7 +127,8 @@ def main():
                         reason = ""
                         mailArgs["subject"] = emailInfo["mailsubject"].format(status=status)
                         mailArgs["body"] = emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=getDateTimeNow(), reason=reason)
-                        sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
+                        if str(emailInfo.get("enabled", None)).lower() == 'true':
+                            sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
                         runArgs["runscache"] = runsCache
                         isSuccessful = False
                         runArgs["starttime"] = getDateTimeNowIso()
@@ -143,7 +145,8 @@ def main():
                         #Mail send after done, update subject and body
                         mailArgs["subject"] = emailInfo["mailsubject"].format(status=status)
                         mailArgs["body"] = emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=getDateTimeNow(), reason=reason)
-                        sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
+                        if str(emailInfo.get("enabled", None)).lower() == 'true':
+                            sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
                 #Goto sleep (displayed in minutes)
                 logger.info("Sleeping for {0} minutes".format(localInfo["sleeptime"]))
                 sleeptimeInSeconds = int(localInfo["sleeptime"])*60

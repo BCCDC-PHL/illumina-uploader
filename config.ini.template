@@ -14,6 +14,7 @@ loginid = firstname.lastname
 outputdirs = /path/to/remote/output/directory/1,/path/to/remote/output/directory/2
 
 [EMAIL]
+enabled = false
 emailurl = https://emailprovider.com
 emailtoken = secrettoken
 mailto = recipient
