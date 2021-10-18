@@ -1,7 +1,13 @@
-import sqlite3, os, re, logging, sys
-from utils import regenIgnoreList, Run
+import logging
+import os
+import re
+import sqlite3
+import sys
+
 from datetime import datetime
 from shutil import copyfile
+
+from .utils import regenIgnoreList, Run
 
 
 class Database:

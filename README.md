@@ -2,7 +2,6 @@
 Lightweight program for Illumina sequencer that watches for new sequence folders and uploads to remote server.
 
 ## Features
-- Lightweight alternative to [SeqUDAS Client](https://github.com/duanjunhyq/sequdas_client) 
 - Keeps track of folders uploaded
 - Minimal Dependencies
 - Cross platform compatible
@@ -20,27 +19,27 @@ python -m venv venv
 ```
 source ./venv/bin/activate
 ```
-7. Install dependencies
+7. Install `illumina-uploader`
 ```
-pip install -r requirements.txt
+pip install .
 ```
 8. Initialize the database
 ```
-python illumina_uploader.py --create-db
+illumina-uploader --create-db
 ```
 
 ## Running
 
 ### Typical Run Command
 ```
-python illumina_uploader.py
+illumina-uploader
 ```
 
 To exit, use "Ctrl + C" keyboard combo. Its safe!
 
 To upload one specific folder (will update status to REUPLOAD in db)
 ```
-python illumina_uploader.py --upload-single-run 200619_M00325_0209_000000000-J6M35
+illumina-uploader --upload-single-run 200619_M00325_0209_000000000-J6M35
 ```
 
 Keep the other illumina-uploader process running, and the file will be picked up.
@@ -49,7 +48,7 @@ Keep the other illumina-uploader process running, and the file will be picked up
 
 Backup database (recommended once a week)
 ```
-python illumina_uploader.py --backup-db
+illumina-uploader --backup-db
 ```
 
 Delete database (useful for testing.. backup db first!)
@@ -59,12 +58,12 @@ rm local.db
 
 Specify custom config and sequencer
 ```
-python illumina_uploader.py --config config.ini --sequencer miseq
+illumina-uploader --config config.ini --sequencer miseq
 ```
 
 Debug run (display debug message + don't send emails, useful for debugging)
 ```
-python illumina_uploader.py --debug
+illumina-uploader --debug
 ```
 
 ## Setup NextSeq after reboot
@@ -75,15 +74,15 @@ NextSeq specific, after a reboot:
 2. login as the 'illumina-data-manager' user
 2. Mount the NAS:
   - Open the 'Terminal' application
-  - cd illumina-uploader
-  - ./mountNextSeqs.sh
+  - `cd illumina-uploader`
+  - `./mountNextSeqs.sh`
   - When prompted for 'illumina-data-manager' enter password to run an admin process and press enter.
   - When prompted for the 'nextseq-mac' enter password to mount a directory and press enter.
     (You will be prompted for the 'nextseq-mac' password three times, once for each of the three NextSeq directories)
 3. Activate the virtual environment for the illumina uploader:
   - source ./venv/bin/activate
 4. Start the illumina uploader:
-  - python illumina_uploader.py
+  - `illumina-uploader`
 5. Done!
 ```
 

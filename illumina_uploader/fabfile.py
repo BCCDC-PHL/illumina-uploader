@@ -4,7 +4,8 @@ import os
 
 from invoke import UnexpectedExit
 from fabric import task
-from utils import formatStdout, getDateTimeNow, getDateTimeNowIso, convDirToRsyncFormat
+
+from .utils import formatStdout, getDateTimeNow, getDateTimeNowIso, convDirToRsyncFormat
 
 @task
 def checkupSystemUptime(context, args):
