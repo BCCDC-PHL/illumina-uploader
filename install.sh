@@ -6,8 +6,8 @@ python -m venv venv
 #source ./venv/bin/activate
 ./venv/Scripts/activate
 #Install dependencies
-pip install -r requirements.txt
+pip install .
 #Initialize the database
-python illumina_uploader.py --create-db
+illumina-uploader --create-db
 echo "..Ready to use!"
 source ./venv/Scripts/activate

@@ -1,16 +1,35 @@
 #!/usr/bin/env python
-import argparse, platform, sqlite3, time, socket
-from fabfile import checkupSystemUptime, uploadRunToServer, scpUploadCompleteJson
-from invoke.context import Context
-from configparser import ConfigParser
-from utils import setupLogger, addToList, sendEmailUsingPlover, getDateTimeNow, getDateTimeNowIso
-from database import Database
-from dataclasses import asdict
 
-def main(args):
+import argparse
+import time
+import platform
+import sqlite3
+import socket
+
+from configparser import ConfigParser
+from dataclasses import asdict
+from invoke.context import Context
+
+from .database import Database
+from .fabfile import checkupSystemUptime, uploadRunToServer, scpUploadCompleteJson
+from .utils import setupLogger, addToList, sendEmailUsingPlover, getDateTimeNow, getDateTimeNowIso
+
+
+def main():
     '''
     Main driver to initialize operations and start watch directory loop
     '''
+    parser = argparse.ArgumentParser(description="Scan for new folders in a directory on Illumina sequencer and upload to remote server.")
+    parser.add_argument("--config", help="location of config file (default is config.ini)")
+    parser.add_argument("--sequencer", help="miseq or nextseq (default taken from config file)")
+    parser.add_argument("--upload-single-run", help="location of single folder run to upload (will not update db)")
+    parser.add_argument("--create-db", action="store_true", help="initialise sqlite database")
+    parser.add_argument("--backup-db", action="store_true", help="backup sqlite database")
+    parser.add_argument("--print-db", action="store_true", help="print sqlite database to stdout")
+    parser.add_argument("--dry-run", action="store_true", help="mock upload testing without uploading anything [NOT IMPLEMENTED YET]")
+    parser.add_argument("--debug", action="store_true", help="print debug data and not send out emails")
+    args = parser.parse_args()
+
     #Initialize objects
     configObject = ConfigParser()
     if not args.config:
@@ -137,14 +156,4 @@ def main(args):
     
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Scan for new folders in a directory on Illumina sequencer and upload to remote server.")
-    parser.add_argument("--config", help="location of config file (default is config.ini)")
-    parser.add_argument("--sequencer", help="miseq or nextseq (default taken from config file)")
-    parser.add_argument("--upload-single-run", help="location of single folder run to upload (will not update db)")
-    parser.add_argument("--create-db", action="store_true", help="initialise sqlite database")
-    parser.add_argument("--backup-db", action="store_true", help="backup sqlite database")
-    parser.add_argument("--print-db", action="store_true", help="print sqlite database to stdout")
-    parser.add_argument("--dry-run", action="store_true", help="mock upload testing without uploading anything [NOT IMPLEMENTED YET]")
-    parser.add_argument("--debug", action="store_true", help="print debug data and not send out emails")
-    args = parser.parse_args()
-    main(args)
+    main()
