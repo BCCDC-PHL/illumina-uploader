@@ -1,6 +1,7 @@
 import os, logging, re, sys, pytz, time
 from logging.handlers import RotatingFileHandler
 from urllib.request import urlopen
+from urllib.error import URLError
 from datetime import datetime
 from dataclasses import dataclass, asdict
 import ssl
@@ -117,7 +118,7 @@ def convDirToRsyncFormat(inputDir):
     '''
     return inputDir.replace("c:/","/cygdrive/c/")
 
-def sendEmailUsingPlover(emailUrl, args):
+def sendEmailUsingPlover(emailUrl, args, logger):
     '''
     Format and add 3 sec delay before sending out email
     '''
@@ -125,7 +126,10 @@ def sendEmailUsingPlover(emailUrl, args):
         time.sleep(3)
         emailUrl = emailUrl.format_map(args)
         emailUrl = emailUrl.replace("|","%7C").replace(" ","%20")
-        response = urlopen(emailUrl)
+        try:
+            response = urlopen(emailUrl)
+        except URLError as e:
+            logger.error('Email notification failed')
 
 def getCorrectTimezone(utc_now):
     '''
