@@ -26,6 +26,7 @@ def main():
     parser.add_argument("--create-db", action="store_true", help="initialise sqlite database")
     parser.add_argument("--backup-db", action="store_true", help="backup sqlite database")
     parser.add_argument("--print-db", action="store_true", help="print sqlite database to stdout")
+    parser.add_argument("--create-ignorefile", action="store_true", help="create an ignore.txt file based on the current contents of the input directories")
     parser.add_argument("--dry-run", action="store_true", help="mock upload testing without uploading anything [NOT IMPLEMENTED YET]")
     parser.add_argument("--debug", action="store_true", help="print debug data and not send out emails")
     args = parser.parse_args()
@@ -74,6 +75,9 @@ def main():
         exit(0)
     if args.print_db:
         dbObject.printDb()
+        exit(0)
+    if args.create_ignorefile:
+        dbObject.createIgnoreFile()
         exit(0)
 
     try:
