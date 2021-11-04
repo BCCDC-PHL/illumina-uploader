@@ -72,7 +72,7 @@ def regenIgnoreList(inputDir):
     Refresh/regenerate ignore.txt file
     '''
     ignoreList = []
-    ignoreFileLoc = inputDir+"ignore.txt"
+    ignoreFileLoc = os.path.join(inputDir, "ignore.txt")
     if "ignore.txt" in os.listdir(inputDir):
         with open(ignoreFileLoc) as fileio:
             ignoreList = fileio.read().splitlines()
@@ -88,7 +88,21 @@ def collectIgnoreList(inputDir):
     Collect current folders into ignore.txt
     useful when setting up on new sequencer
     '''
-    pass
+    existing_run_directories = []
+    for f in os.listdir(inputDir):
+        if os.path.isdir(os.path.join(inputDir, f)):
+            existing_run_directories.append(f)
+
+    ignorefile_path = os.path.join(inputDir, "ignore.txt")
+    new_ignore_list = []
+    if os.path.isfile(ignorefile_path):
+        new_ignore_list += regenIgnoreList(inputDir)
+    new_ignore_list += existing_run_directories
+    new_ignore_list = sorted(set(new_ignore_list))
+    with open(ignorefile_path, 'w') as f:
+        for d in new_ignore_list:
+            f.write(d + '\n')
+
 
 def addToList(inputDir, folderName, listType):
     '''

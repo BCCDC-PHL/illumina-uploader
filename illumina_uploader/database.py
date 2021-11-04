@@ -7,7 +7,7 @@ import sys
 from datetime import datetime
 from shutil import copyfile
 
-from .utils import regenIgnoreList, Run
+from .utils import regenIgnoreList, collectIgnoreList, Run
 
 
 class Database:
@@ -88,16 +88,9 @@ class Database:
         for folder in folders:
             print(','.join(folder))
 
-    def createIgnoreFile(self, input_path):
-        existing_directories = []
-        for f in os.listdir(input_path):
-            if os.path.isdir(os.path.join(input_path, f)):
-                existing_directories.append(f)
-
-        ignorefile_path = os.path.join(os.path.dirname(self.location), "ignore.txt")
-        with open(ignorefile_path, 'w') as f:
-            for d in existing_directories:
-                f.write(d + '\n')
+    def createIgnoreFile(self):
+        for d in self.inputDirs:
+            collectIgnoreList(d)
 
     def _insertFolders(self, folderName):
         '''
