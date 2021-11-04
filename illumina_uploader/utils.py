@@ -129,7 +129,7 @@ def sendEmailUsingPlover(emailUrl, args, logger):
         try:
             response = urlopen(emailUrl)
         except URLError as e:
-            logger.error('Email notification failed')
+            logger.error('Email notification failed using url: ' + emailUrl)
 
 def getCorrectTimezone(utc_now):
     '''
