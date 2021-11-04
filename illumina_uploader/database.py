@@ -90,7 +90,7 @@ class Database:
 
     def createIgnoreFile(self):
         for d in self.inputDirs:
-            collectIgnoreList(d)
+            collectIgnoreList(d, self.folderRegex, self.logger)
 
     def _insertFolders(self, folderName):
         '''

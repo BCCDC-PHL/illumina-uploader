@@ -1,4 +1,4 @@
-import os, logging, sys, pytz, time
+import os, logging, re, sys, pytz, time
 from logging.handlers import RotatingFileHandler
 from urllib.request import urlopen
 from datetime import datetime
@@ -83,25 +83,24 @@ def regenIgnoreList(inputDir):
     ignoreList = list(set(ignoreList)) #remove duplicate lines
     return ignoreList
 
-def collectIgnoreList(inputDir):
+def collectIgnoreList(inputDir, folder_regex, logger):
     '''
     Collect current folders into ignore.txt
     useful when setting up on new sequencer
     '''
     existing_run_directories = []
     for f in os.listdir(inputDir):
-        if os.path.isdir(os.path.join(inputDir, f)):
+        if os.path.isdir(os.path.join(inputDir, f)) and re.match(folder_regex, f):
             existing_run_directories.append(f)
 
     ignorefile_path = os.path.join(inputDir, "ignore.txt")
-    new_ignore_list = []
-    if os.path.isfile(ignorefile_path):
-        new_ignore_list += regenIgnoreList(inputDir)
-    new_ignore_list += existing_run_directories
-    new_ignore_list = sorted(set(new_ignore_list))
-    with open(ignorefile_path, 'w') as f:
-        for d in new_ignore_list:
-            f.write(d + '\n')
+    if not os.path.isfile(ignorefile_path):
+        with open(ignorefile_path, 'w') as f:
+            for d in existing_run_directories:
+                f.write(d + '\n')
+    else:
+        logger.info('File: ' + ignorefile_path + ' exists. New ignore.txt file not created.')
+                
 
 
 def addToList(inputDir, folderName, listType):
