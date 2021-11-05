@@ -157,6 +157,7 @@ def main():
                 sleeptimeInSeconds = int(localInfo["sleeptime"])*60
                 time.sleep(sleeptimeInSeconds)
     except FileNotFoundError as error:
+        logger.info(error)
         logger.info("Shutting down Directory Watch. Exiting.")
     
 

@@ -22,8 +22,8 @@ mailsubject = [illumina-uploader] {status} miseq data transfer to sabin
 mailbody = Run directory {folderToUpload} {status} transferring to Sabin at {timeOfMail}
 
 [COMMANDS]
-rsynccommand = rsync -artvh -p -e "{sshformat} -i {pem}" {chmod} {inDir}{inFile} {login}@{host}:{outDir}
-scpcommand = scp -i {pem} {inDir}{filename} {login}@{host}:{outDir}{filename}
+rsynccommand = rsync -artvh -p -e "{sshformat} -i {pem}" {chmod} {inDir}/{inFile} {login}@{host}:{outDir}
+scpcommand = scp -i {pem} {inDir}/{filename} {login}@{host}:{outDir}/{filename}
 sshnixcommand = ssh
 sshwincommand = /usr/bin/ssh
 chmodcommand = --chmod=Du=rwx,Dg=rx,Fu=rw,Fg=r,o=
