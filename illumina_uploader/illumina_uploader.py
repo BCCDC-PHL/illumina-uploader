@@ -120,7 +120,7 @@ def main():
                     mailArgs["subject"] = emailInfo["mailsubject"].format(status="ERROR"),
                     mailArgs["body"] = emailInfo["mailbody"].format(folderToUpload="cannot be read", status="ERROR", timeOfMail=getDateTimeNow(), reason=reason)
                     if str(emailInfo.get("enabled", None)).lower() == "true":
-                        sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
+                        sendEmailUsingPlover(emailInfo["emailurl"], mailArgs, logger)
                 foldersToUpload = dbObject.getFolderList()
                 if runsCache:
                     for folderName in foldersToUpload:
@@ -132,7 +132,7 @@ def main():
                         mailArgs["subject"] = emailInfo["mailsubject"].format(status=status)
                         mailArgs["body"] = emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=getDateTimeNow(), reason=reason)
                         if str(emailInfo.get("enabled", None)).lower() == 'true':
-                            sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
+                            sendEmailUsingPlover(emailInfo["emailurl"], mailArgs, logger)
                         runArgs["runscache"] = runsCache
                         isSuccessful = False
                         runArgs["starttime"] = getDateTimeNowIso()
@@ -150,7 +150,7 @@ def main():
                         mailArgs["subject"] = emailInfo["mailsubject"].format(status=status)
                         mailArgs["body"] = emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=getDateTimeNow(), reason=reason)
                         if str(emailInfo.get("enabled", None)).lower() == 'true':
-                            sendEmailUsingPlover(emailInfo["emailurl"], mailArgs)
+                            sendEmailUsingPlover(emailInfo["emailurl"], mailArgs, logger)
                 #Goto sleep (displayed in minutes)
                 logger.info("Sleeping for {0} minutes".format(localInfo["sleeptime"]))
                 sleeptimeInSeconds = int(localInfo["sleeptime"])*60
