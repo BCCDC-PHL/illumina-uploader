@@ -145,7 +145,8 @@ def main():
                         logger.info("Marking in DB as {0}".format(status))
                         dbObject.markFileInDb(folderToUpload, status)
                         #Create json file
-                        scpUploadCompleteJson(context, runArgs)
+                        if isSuccessful:
+                            scpUploadCompleteJson(context, runArgs)
                         #Mail send after done, update subject and body
                         mailArgs["subject"] = emailInfo["mailsubject"].format(status=status)
                         mailArgs["body"] = emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=getDateTimeNow(), reason=reason)
@@ -156,6 +157,7 @@ def main():
                 sleeptimeInSeconds = int(localInfo["sleeptime"])*60
                 time.sleep(sleeptimeInSeconds)
     except FileNotFoundError as error:
+        logger.info(error)
         logger.info("Shutting down Directory Watch. Exiting.")
     
 

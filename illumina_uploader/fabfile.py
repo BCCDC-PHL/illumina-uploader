@@ -63,8 +63,8 @@ def scpUploadCompleteJson(context, args):
         if args["inFile"] == possibleRun.name:
             actualInDir = possibleRun.inputDir
             actualOutDir = possibleRun.outputDir
-    args["inDir"] = "temp/"
-    args["outDir"] = actualOutDir + args["inFile"] + "/"
+    args["inDir"] =  os.path.join(os.path.dirname(os.path.realpath(__file__)), "tmp")
+    args["outDir"] = os.path.join(actualOutDir + args["inFile"])
     args["filename"] = "upload_complete.json"
     try:
         #Create upload_complete.json
@@ -74,7 +74,7 @@ def scpUploadCompleteJson(context, args):
             "timestamp_start": args["starttime"],
             "timestamp_end": now,
             "input_directory": os.path.join(actualInDir, args["inFile"]),
-            "output_directory": args["outDir"].rstrip('/'),
+            "output_directory": args["outDir"],
         }
         upload_complete_json_path = os.path.join(args["inDir"], args["filename"])
         with open(upload_complete_json_path, 'w') as f:
