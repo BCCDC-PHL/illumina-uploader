@@ -53,7 +53,7 @@ illumina-uploader --backup-db
 
 Delete database (useful for testing.. backup db first!)
 ```
-rm local.db
+rm /path/to/local.db
 ```
 
 Specify custom config and sequencer
