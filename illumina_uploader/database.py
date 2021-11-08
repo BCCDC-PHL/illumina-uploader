@@ -17,7 +17,7 @@ class Database:
     '''
     def __init__(self, dbInfo, queries, logger, inputDirs, folderRegex):
         self.logger = logger
-        self.location = os.path.join(os.path.dirname(__file__), dbInfo["location"])
+        self.location = os.path.abspath(dbInfo["location"])
         self.backups = os.path.abspath(dbInfo["backupfolder"])
         self.folderTable = dbInfo["foldertable"]
         self.inputDirs = inputDirs
