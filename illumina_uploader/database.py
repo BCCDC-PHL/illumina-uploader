@@ -16,14 +16,27 @@ class Database:
     TODO replace with DjangoORM in future
     '''
     def __init__(self, dbInfo, queries, logger, inputDirs, folderRegex):
-        self.location = os.path.join(os.path.dirname(__file__), dbInfo["location"])
-        self.backups = os.path.join(os.path.dirname(__file__), dbInfo["backupfolder"])
-        self.folderTable = dbInfo["foldertable"]
-        self.connection = self.initConnection()
-        self.queries = queries
         self.logger = logger
+        self.location = os.path.join(os.path.dirname(__file__), dbInfo["location"])
+        self.backups = os.path.abspath(dbInfo["backupfolder"])
+        self.folderTable = dbInfo["foldertable"]
         self.inputDirs = inputDirs
+        self.queries = queries
         self.folderRegex = folderRegex
+        self.checkInputs()
+        self.connection = self.initConnection()
+
+
+    def checkInputs(self):
+        non_existent_inputs = []
+        for d in [os.path.dirname(self.location), self.backups] + self.inputDirs:
+            if not os.path.exists(d):
+                non_existent_inputs.append(d)
+
+        if len(non_existent_inputs) > 0:
+            for i in non_existent_inputs:
+                self.logger.error("File or directory does not exist: " + i + " Check config.ini file.")
+            exit(1)
 
     def initConnection(self):
         return sqlite3.connect(self.location)
