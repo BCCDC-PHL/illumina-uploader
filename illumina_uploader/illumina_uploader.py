@@ -63,7 +63,6 @@ def main():
         run_ids_in_db = set()
         for run in dbObject.getAllFolders():
             run_ids_in_db.add(run[0])
-            logger.info("Run in db: " + run[0] + ", status: " + run[1] + ", timestamp: " + run[2])
         runsCache = dbObject.watchDirectories(localInfo["watchfilepath"], inOutMap, dryRun=True)
         runs_to_upload = []
         for run in runsCache:
