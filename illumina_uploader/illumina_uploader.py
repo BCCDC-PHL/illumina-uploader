@@ -66,7 +66,7 @@ def main():
         runsCache = dbObject.watchDirectories(localInfo["watchfilepath"], inOutMap, dryRun=True)
         runs_to_upload = []
         for run in runsCache:
-            if run.name not in run_ids_in_db:
+            if run.name not in run_ids_in_db and dbObject._checkFolder(run.name):
                 runs_to_upload.append(run.name)
         if len(runs_to_upload) == 0:
             logger.info("No runs to upload.")
