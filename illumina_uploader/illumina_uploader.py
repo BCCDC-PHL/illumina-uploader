@@ -57,7 +57,23 @@ def main():
     else:
         folderRegex = localInfo["folderregexnextseq"]
     if args.dry_run:
-        checkupSystemUptime(context, {"logger":logger})
+        dbInfo = configObject["DB"]
+        sqlInfo = configObject["SQL"]
+        dbObject = Database(dbInfo, sqlInfo, logger, inputDirs, folderRegex)
+        run_ids_in_db = set()
+        for run in dbObject.getAllFolders():
+            if run[1] == "FINISHED":
+                run_ids_in_db.add(run[0])
+        runsCache = dbObject.watchDirectories(localInfo["watchfilepath"], inOutMap, dryRun=True)
+        runs_to_upload = []
+        for run in runsCache:
+            if run.name not in run_ids_in_db and dbObject._checkFolder(run.name):
+                runs_to_upload.append(run.name)
+        if len(runs_to_upload) == 0:
+            logger.info("No runs to upload.")
+        else:
+            for run in runs_to_upload:
+                logger.info("Run to upload: " + run)
         logger.info("Dry run completed. Exiting.")
         exit(0)
     isDebug = True if args.debug else False
