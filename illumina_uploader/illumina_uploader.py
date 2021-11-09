@@ -62,7 +62,8 @@ def main():
         dbObject = Database(dbInfo, sqlInfo, logger, inputDirs, folderRegex)
         run_ids_in_db = set()
         for run in dbObject.getAllFolders():
-            run_ids_in_db.add(run[0])
+            if run[1] == "FINISHED":
+                run_ids_in_db.add(run[0])
         runsCache = dbObject.watchDirectories(localInfo["watchfilepath"], inOutMap, dryRun=True)
         runs_to_upload = []
         for run in runsCache:
