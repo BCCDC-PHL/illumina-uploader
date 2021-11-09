@@ -133,7 +133,7 @@ class Database:
         self.logger.error("Please check folder name {} and/or its location".format(folderName))
         return False
 
-    def watchDirectories(self, watchFile, inOutMap):
+    def watchDirectories(self, watchFile, inOutMap, dryRun=False):
         '''
         Check for watch file and prep folder if matched
         TODO increase performance!
@@ -150,8 +150,9 @@ class Database:
                             #Add to list to be uploaded
                             newRun = Run(folder, inputDir, inOutMap[inputDir])
                             runs.append(newRun)
-                            self.logger.info("Adding {0} to DB".format(folder))
-                            self.prepFolders(folder)
+                            if not dryRun:
+                                self.logger.info("Adding {0} to DB".format(folder))
+                                self.prepFolders(folder)
         return runs
 
     def markFileInDb(self, folderName, markAs):
