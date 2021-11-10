@@ -19,7 +19,7 @@ class DbTests(unittest.TestCase):
         folder_regex = ''
         input_dirs = ['.']        
         self.db_info = {
-            'location': 'test.db',
+            'location': 'test/data/test.db',
             'backupfolder': 'test/data',
             'foldertable': 'folderinfo',
         }
