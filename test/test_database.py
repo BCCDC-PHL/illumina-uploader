@@ -1,5 +1,6 @@
 import unittest
 import unittest.mock as mock
+import pytest
 
 import os
 
@@ -47,6 +48,10 @@ class DbTests(unittest.TestCase):
         folder_list = self.db.getFolderList()
         self.assertTrue(folder_list == [])
 
+    def test_checkInputs(self):
+        self.db.location = 'idontexist'
+        with pytest.raises(SystemExit):
+            self.db.checkInputs()
 
 if __name__ == "__main__":
     unittest.main()
