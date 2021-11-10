@@ -37,6 +37,7 @@ class DbTests(unittest.TestCase):
         self.db.closeConnection()
         try:
             os.remove(self.db_info['location'])
+            os.remove(os.path.join(self.db_info['backupfolder'], 'test.log'))
         except OSError as e:
             pass
 
