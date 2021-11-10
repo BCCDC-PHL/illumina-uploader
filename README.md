@@ -1,4 +1,8 @@
 # illumina-uploader
+
+![Tests](https://github.com/BCCDC-PHL/illumina-uploader/actions/workflows/ci.yml/badge.svg)
+
+
 Lightweight program for Illumina sequencer that watches for new sequence folders and uploads to remote server.
 
 ## Features
@@ -149,7 +153,7 @@ See [config.ini.template](config.ini.template) for format details.
     - Fixed debug mode
 - v0.7
     - ~~Fix upload_complete.json: timestamp_start, input_directory, output_directory and format~~
-    - Fix dry run
+    - ~~Fix dry run~~
     - Add pytests
     - ~~quick create ignore.txt file from a given input folder~~
 - v0.8   - One page Web UI using flask/django
