@@ -149,8 +149,8 @@ See [config.ini.template](config.ini.template) for format details.
     - Fixed debug mode
 - v0.7
     - ~~Fix upload_complete.json: timestamp_start, input_directory, output_directory and format~~
-    - Fix dry run
-    - Add pytests
+    - ~~Fix dry run~~
+    - ~~Add pytests~~
     - ~~quick create ignore.txt file from a given input folder~~
 - v0.8   - One page Web UI using flask/django
          - rerwite db class to use run class for folder tracking
