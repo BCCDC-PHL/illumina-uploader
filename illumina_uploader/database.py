@@ -36,7 +36,7 @@ class Database:
         if len(non_existent_inputs) > 0:
             for i in non_existent_inputs:
                 self.logger.error("File or directory does not exist: " + i + " Check config.ini file.")
-            exit(1)
+            raise SystemExit(1)
 
     def initConnection(self):
         return sqlite3.connect(self.location)
