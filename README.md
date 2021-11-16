@@ -151,15 +151,15 @@ See [config.ini.template](config.ini.template) for format details.
 - ~~v0.6~~
     - ~~Fixed single uploads command "--upload-single-run"~~
     - Fixed debug mode
-- v0.7
+- ~~v0.7~~
     - ~~Fix upload_complete.json: timestamp_start, input_directory, output_directory and format~~
     - ~~Fix dry run~~
     - ~~Add pytests~~
     - ~~quick create ignore.txt file from a given input folder~~
-- v0.8   - One page Web UI using flask/django
-         - rerwite db class to use run class for folder tracking
-- v0.9   - Installer and one script run
-- v1.0   - Long Term Release (LTM), New feature freeze, only bugfixes
+    - ~~Installer and one script run~~
+- v0.8   - One page Web UI for viewing DB in browser
+- v0.9   - Beta Release, feature freeze, run linter, add coverage tests
+- v1.0   - Long Term Release (LTM), only bugfixes
 
 ## Troubleshooting
 ### Problem: `$'\r': command not found`
