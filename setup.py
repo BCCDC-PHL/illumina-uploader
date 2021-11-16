@@ -17,6 +17,9 @@ setup(
     setup_requires=[],
     tests_require=[],
     entry_points = {
-        'console_scripts': ['illumina-uploader=illumina_uploader.illumina_uploader:main'],
+        'console_scripts': [
+            'illumina-uploader=illumina_uploader.illumina_uploader:main',
+            'illumina-uploader-api=illumina_uploader.server',
+        ],
     }
 )
