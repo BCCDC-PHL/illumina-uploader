@@ -19,7 +19,7 @@ setup(
     entry_points = {
         'console_scripts': [
             'illumina-uploader=illumina_uploader.illumina_uploader:main',
-            'illumina-uploader-api=illumina_uploader.server',
+            'illumina-uploader-web=illumina_uploader.server',
         ],
     }
 )

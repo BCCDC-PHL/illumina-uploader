@@ -10,4 +10,4 @@ pytz==2021.1
 six==1.15.0
 fastapi==0.70.0
 sqlmodel==0.0.4
-uvicorn==0.15.0
+uvicorn[standard]==0.15.0

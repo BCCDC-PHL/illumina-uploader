@@ -2,8 +2,10 @@
 
 import argparse
 import os
+import json
+import time
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, WebSocket
 from fastapi.staticfiles import StaticFiles
 from sqlmodel import Session, create_engine, select
 
@@ -30,7 +32,6 @@ static_directory_path = os.path.join(
 )
 app.mount("/", StaticFiles(directory=static_directory_path, html=True), name="static")
 
-
 @api.on_event("startup")
 def on_startup():
     pass
@@ -49,6 +50,7 @@ def get_runs(*, session: Session = Depends(get_session)):
     if not runs:
         raise HTTPException(status_code=404, detail="Run data not found")
     return runs
+
 
 @api.get("/runs/{run_id}")
 def get_run(*, session: Session = Depends(get_session), run_id: str):

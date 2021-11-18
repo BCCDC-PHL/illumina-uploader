@@ -1,6 +1,3 @@
-const baseUrl = "http://localhost"
-const apiPort = 8081
-const apiBasePath = "/api"
 
 const columnDefs = [
     { field: "run_id", headerName: "Run ID", minWidth: 300 },
@@ -17,13 +14,17 @@ const gridOptions = {
   rowData: rowData
 };
 
-// setup the grid after the page has finished loading
-document.addEventListener('DOMContentLoaded', () => {
+const updateTable = () => {
+    fetch('http://localhost:8081/api/runs/')
+      .then(response => response.json())
+      .then(data => {
+          gridOptions.api.setRowData(data);
+      });
+}
+
+document.addEventListener('DOMContentLoaded', () => {    
     const gridDiv = document.querySelector('#runsTable');
     new agGrid.Grid(gridDiv, gridOptions);
-    
-    agGrid.simpleHttpRequest({url: baseUrl + ":" + apiPort + apiBasePath + "/runs"})
-        .then(data => {
-            gridOptions.api.setRowData(data);
-        });
+    updateTable();
+    var intervalId = window.setInterval(updateTable, 5000)
 });
