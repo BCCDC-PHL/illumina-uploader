@@ -4,8 +4,6 @@ import argparse
 import os
 
 import uvicorn
-from fastapi import Depends, FastAPI, HTTPException
-from sqlmodel import Session, create_engine
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-d', '--db', help="Database file (sqlite)")
