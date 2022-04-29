@@ -158,8 +158,8 @@ See [config.ini.template](config.ini.template) for format details.
     - ~~quick create ignore.txt file from a given input folder~~
     - ~~Installer and one script run~~
 - v0.8   - One page Web UI for viewing DB in browser
-- v0.9   - Beta Release, feature freeze, run linter, add coverage tests
-- v1.0   - Long Term Release (LTM), only bugfixes
+- v0.9   - Finalize config.ini template, add linter and coverage tests
+- v1.0   - Long Term Release (LTM)
 
 ## Troubleshooting
 ### Problem: `$'\r': command not found`
