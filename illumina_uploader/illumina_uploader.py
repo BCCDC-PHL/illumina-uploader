@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
 import argparse
-import time
+import os
 import platform
 import sqlite3
 import socket
+import time
 
 from configparser import ConfigParser
 from dataclasses import asdict
@@ -47,7 +48,12 @@ def main():
         sequencer = localInfo["sequencer"]
     else:
         sequencer = args.sequencer
-    inputDirs = localInfo["inputDirs"].split(",")
+    inputDirs = []
+    for inputDir in localInfo["inputDirs"].split(","):
+        if os.path.exists(inputDir) and os.path.isdir(inputDir):
+            inputDirs.append(os.path.abspath(inputDir))
+        else:
+            logger.warn("Input directory does not exist: " + inputDir)
     outputDirs = serverInfo["outputdirs"].split(",")
     inOutMap = dict(zip(inputDirs,outputDirs))
     
@@ -119,7 +125,7 @@ def main():
         else:
             #Call fabric tasks
             while(True):
-                logger.info("Start Watching Directores: {0}".format(",".join(inputDirs)))
+                logger.info("Start watching directories: {0}".format(",".join(inputDirs)))
                 #runsCache stores run info for later retrieval. TODO optimize
                 runsCache = None
                 #Default mail args
@@ -171,10 +177,14 @@ def main():
                 #Goto sleep (displayed in minutes)
                 logger.info("Sleeping for {0} minutes".format(localInfo["sleeptime"]))
                 sleeptimeInSeconds = int(localInfo["sleeptime"])*60
-                time.sleep(sleeptimeInSeconds)
-    except FileNotFoundError as error:
-        logger.info(error)
-        logger.info("Shutting down Directory Watch. Exiting.")
+                try:
+                    time.sleep(sleeptimeInSeconds)
+                except KeyboardInterrupt as e:
+                    logger.info("Keyboard interrupt received. Exiting.")
+                    exit(0)
+    except FileNotFoundError as e:
+        logger.info(e)
+        logger.warning("Shutting down Directory Watch. Exiting.")
     
 
 if __name__ == "__main__":
