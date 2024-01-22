@@ -103,90 +103,86 @@ def main():
         dbObject.createIgnoreFile()
         exit(0)
 
-    try:
-        sshformat = commands["sshwincommand"] if platform.system()=="Windows" else commands["sshnixcommand"]
-        #Collect rsync command info
-        runArgs = {
-            "pem": serverInfo["pemfile"],
-            "host": serverInfo["host"],
-            "login": serverInfo["loginid"],
-            "chmod": commands["chmodcommand"],
-            "rsync": commands["rsynccommand"],
-            "sshformat": sshformat,
-            "scp": commands["scpcommand"],
-            "logger": logger,
-            "debug": isDebug,
-        }
-        if single_run:
-            logger.info("Start One-off run for single directory {0}".format(single_run))
-            runArgs["inFile"] = single_run
-            dbObject.markFileInDb(single_run, "REUPLOAD")
-            logger.info("This process will exit now, and {0} will get picked up by the other illumina-uploader process".format(single_run))
-            exit(0)
-        else:
-            #Call fabric tasks
-            while(True):
-                logger.info("Start watching directories: {0}".format(",".join(inputDirs)))
-                #runsCache stores run info for later retrieval. TODO optimize
-                runsCache = None
-                #Default mail args
-                mailArgs = {
-                    "debug": isDebug,
-                    "token": emailInfo["emailtoken"],
-                    "mailto": emailInfo["mailto"]
-                }
-                try:
-                    runsCache = dbObject.watchDirectories(localInfo["watchfilepath"], inOutMap)
-                except KeyboardInterrupt as error:
-                    reason = "{0}. Network drive needs to be reconnected. Will retry again in {1} minutes".format(error, localInfo["sleeptime"])
-                    logger.error(reason)
-                    mailArgs["subject"] = emailInfo["mailsubject"].format(status="ERROR"),
-                    mailArgs["body"] = emailInfo["mailbody"].format(folderToUpload="cannot be read", status="ERROR", timeOfMail=getDateTimeNow(), reason=reason)
-                    if str(emailInfo.get("enabled", None)).lower() == "true":
+
+    sshformat = commands["sshwincommand"] if platform.system()=="Windows" else commands["sshnixcommand"]
+    #Collect rsync command info
+    runArgs = {
+        "pem": serverInfo["pemfile"],
+        "host": serverInfo["host"],
+        "login": serverInfo["loginid"],
+        "chmod": commands["chmodcommand"],
+        "rsync": commands["rsynccommand"],
+        "sshformat": sshformat,
+        "scp": commands["scpcommand"],
+        "logger": logger,
+        "debug": isDebug,
+    }
+    if single_run:
+        logger.info("Start One-off run for single directory {0}".format(single_run))
+        runArgs["inFile"] = single_run
+        dbObject.markFileInDb(single_run, "REUPLOAD")
+        logger.info("This process will exit now, and {0} will get picked up by the other illumina-uploader process".format(single_run))
+        exit(0)
+    else:
+        #Call fabric tasks
+        while(True):
+            logger.info("Start watching directories: {0}".format(",".join(inputDirs)))
+            #runsCache stores run info for later retrieval. TODO optimize
+            runsCache = None
+            #Default mail args
+            mailArgs = {
+                "debug": isDebug,
+                "token": emailInfo["emailtoken"],
+                "mailto": emailInfo["mailto"]
+            }
+            try:
+                runsCache = dbObject.watchDirectories(localInfo["watchfilepath"], inOutMap)
+            except KeyboardInterrupt as error:
+                reason = "{0}. Network drive needs to be reconnected. Will retry again in {1} minutes".format(error, localInfo["sleeptime"])
+                logger.error(reason)
+                mailArgs["subject"] = emailInfo["mailsubject"].format(status="ERROR"),
+                mailArgs["body"] = emailInfo["mailbody"].format(folderToUpload="cannot be read", status="ERROR", timeOfMail=getDateTimeNow(), reason=reason)
+                if str(emailInfo.get("enabled", None)).lower() == "true":
+                    sendEmailUsingPlover(emailInfo["emailurl"], mailArgs, logger)
+            foldersToUpload = dbObject.getFolderList()
+            if runsCache:
+                for folderName in foldersToUpload:
+                    folderToUpload = folderName[0]
+                    runArgs["inFile"] = folderToUpload
+                    #Mail send before start
+                    status = "STARTED"
+                    reason = ""
+                    mailArgs["subject"] = emailInfo["mailsubject"].format(status=status)
+                    mailArgs["body"] = emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=getDateTimeNow(), reason=reason)
+                    if str(emailInfo.get("enabled", None)).lower() == 'true':
                         sendEmailUsingPlover(emailInfo["emailurl"], mailArgs, logger)
-                foldersToUpload = dbObject.getFolderList()
-                if runsCache:
-                    for folderName in foldersToUpload:
-                        folderToUpload = folderName[0]
-                        runArgs["inFile"] = folderToUpload
-                        #Mail send before start
-                        status = "STARTED"
-                        reason = ""
-                        mailArgs["subject"] = emailInfo["mailsubject"].format(status=status)
-                        mailArgs["body"] = emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=getDateTimeNow(), reason=reason)
-                        if str(emailInfo.get("enabled", None)).lower() == 'true':
-                            sendEmailUsingPlover(emailInfo["emailurl"], mailArgs, logger)
-                        runArgs["runscache"] = runsCache
-                        isSuccessful = False
-                        runArgs["starttime"] = getDateTimeNowIso()
-                        try:
-                            isSuccessful = uploadRunToServer(context, runArgs)
-                        except (socket.error, OSError) as error:
-                            logger.error("Fatal OS / network error: {0}".format(error))
-                            reason = "Fatal OS / network error.. will try again in {0} minutes".format(localInfo["sleeptime"])
-                        status = "FINISHED" if isSuccessful else "FAILED"
-                        logger.info("Marking in DB as {0}".format(status))
-                        dbObject.markFileInDb(folderToUpload, status)
-                        #Create json file
-                        if isSuccessful:
-                            scpUploadCompleteJson(context, runArgs)
-                        #Mail send after done, update subject and body
-                        mailArgs["subject"] = emailInfo["mailsubject"].format(status=status)
-                        mailArgs["body"] = emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=getDateTimeNow(), reason=reason)
-                        if str(emailInfo.get("enabled", None)).lower() == 'true':
-                            sendEmailUsingPlover(emailInfo["emailurl"], mailArgs, logger)
-                #Goto sleep (displayed in minutes)
-                logger.info("Sleeping for {0} minutes".format(localInfo["sleeptime"]))
-                sleeptimeInSeconds = int(localInfo["sleeptime"])*60
-                try:
-                    time.sleep(sleeptimeInSeconds)
-                except KeyboardInterrupt as e:
-                    logger.info("Keyboard interrupt received. Exiting.")
-                    exit(0)
-    except FileNotFoundError as e:
-        logger.info(e)
-        logger.warning("Shutting down Directory Watch. Exiting.")
-    
+                    runArgs["runscache"] = runsCache
+                    isSuccessful = False
+                    runArgs["starttime"] = getDateTimeNowIso()
+                    try:
+                        isSuccessful = uploadRunToServer(context, runArgs)
+                    except (socket.error, OSError) as error:
+                        logger.error("Fatal OS / network error: {0}".format(error))
+                        reason = "Fatal OS / network error.. will try again in {0} minutes".format(localInfo["sleeptime"])
+                    status = "FINISHED" if isSuccessful else "FAILED"
+                    logger.info("Marking in DB as {0}".format(status))
+                    dbObject.markFileInDb(folderToUpload, status)
+                    #Create json file
+                    if isSuccessful:
+                        scpUploadCompleteJson(context, runArgs)
+                    #Mail send after done, update subject and body
+                    mailArgs["subject"] = emailInfo["mailsubject"].format(status=status)
+                    mailArgs["body"] = emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=getDateTimeNow(), reason=reason)
+                    if str(emailInfo.get("enabled", None)).lower() == 'true':
+                        sendEmailUsingPlover(emailInfo["emailurl"], mailArgs, logger)
+            #Goto sleep (displayed in minutes)
+            logger.info("Sleeping for {0} minutes".format(localInfo["sleeptime"]))
+            sleeptimeInSeconds = int(localInfo["sleeptime"])*60
+            try:
+                time.sleep(sleeptimeInSeconds)
+            except KeyboardInterrupt as e:
+                logger.info("Keyboard interrupt received. Exiting.")
+                exit(0)
 
 if __name__ == "__main__":
     main()

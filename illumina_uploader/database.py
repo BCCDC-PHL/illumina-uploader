@@ -204,7 +204,9 @@ class Database:
 
     def watchDirectories(self, watchFile, inOutMap, dryRun=False):
         """
-        Check for watch file and prep folder if matched
+        Iterate through input directories and check if any folders match watch file from config.
+        If found, add to list to be uploaded. If dry run, do not add to db.
+        If directory does not exist, log error, skip that input dir and continue.
 
         :param watchFile: Name of watch file to check
         :type watchFile: str
@@ -217,6 +219,9 @@ class Database:
         """
         runs = []
         for inputDir in self.inputDirs:
+            if not os.path.exists(inputDir):
+                self.logger.error("Directory does not exist: " + inputDir)
+                continue
             for folder in os.listdir(inputDir):
                 #Check if regex matches directory name
                 if re.match(self.folderRegex, folder):
