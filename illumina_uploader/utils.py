@@ -43,7 +43,7 @@ class Formatter(logging.Formatter):
                 s = dt.isoformat()
         return s
 
-def setupLogger(logFile, maxBytes=5000, backupCount=5):
+def setupLogger(logFile, maxBytes=5000, backupCount=5, logLevel='info'):
     """
     Setup up logger to output stdout/stderr to terminal and logfile (path from config)
 
@@ -57,8 +57,16 @@ def setupLogger(logFile, maxBytes=5000, backupCount=5):
     :rtype: logging.Logger
     """
     logger = logging.getLogger(__name__)
-    logger.setLevel(logging.INFO)
-    formatter = Formatter("%(asctime)s [%(levelname)s] module: %(module)s, function: %(funcName)s, line: %(lineno)d, message: %(message)s")
+
+    if logLevel == "debug":
+        formatter = Formatter("%(asctime)s [%(levelname)s] module: %(module)s, function: %(funcName)s, line: %(lineno)d, message: %(message)s")
+        logger.setLevel(logging.DEBUG)
+    elif logLevel == "info":
+        formatter = Formatter("%(asctime)s [%(levelname)s] message: %(message)s")
+        logger.setLevel(logging.INFO)
+    else:
+        formatter = Formatter("%(asctime)s [%(levelname)s] message: %(message)s")
+        logger.setLevel(logging.WARNING)
 
     #Set STDOUT
     ch = logging.StreamHandler(sys.stdout)

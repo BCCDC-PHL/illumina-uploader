@@ -30,6 +30,7 @@ def main():
     parser.add_argument("--create-ignorefile", action="store_true", help="create an ignore.txt file based on the current contents of the input directories")
     parser.add_argument("--dry-run", action="store_true", help="mock upload testing without uploading anything [NOT IMPLEMENTED YET]")
     parser.add_argument("--debug", action="store_true", help="print debug data and not send out emails")
+    parser.add_argument("--log-level", default="info", help="log level (default is info). Can be debug, info, warning, error, critical.")
     args = parser.parse_args()
 
     #Initialize objects
@@ -43,7 +44,7 @@ def main():
     localInfo = configObject["LOCAL"]
     commands = configObject["COMMANDS"]
     context = Context()
-    logger = setupLogger(localInfo["logfile"])
+    logger = setupLogger(localInfo["logfile"], logLevel=args.log_level)
     if not args.sequencer:
         sequencer = localInfo["sequencer"]
     else:
