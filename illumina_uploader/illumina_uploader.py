@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
+import json
 import time
 import platform
 import sqlite3
@@ -20,7 +21,7 @@ def main():
     Main driver to initialize operations and start watch directory loop
     '''
     parser = argparse.ArgumentParser(description="Scan for new folders in a directory on Illumina sequencer and upload to remote server.")
-    parser.add_argument("--config", help="location of config file (default is config.ini)")
+    parser.add_argument("--config", help="location of config file (default is config.json)")
     parser.add_argument("--sequencer", help="miseq or nextseq (default taken from config file)")
     parser.add_argument("--upload-single-run", help="location of single folder run to upload (will not update db)")
     parser.add_argument("--create-db", action="store_true", help="initialise sqlite database")
@@ -32,11 +33,12 @@ def main():
     args = parser.parse_args()
 
     #Initialize objects
-    configObject = ConfigParser()
     if not args.config:
-        configObject.read("config.ini")    
+        jsonFile = open('config.json')
+        configObject = json.load(jsonFile)
     else:
-        configObject.read(args.config)
+        jsonFile = open(args.config)
+        configObject = json.load(jsonFile)
     serverInfo = configObject["SERVER"]
     emailInfo = configObject["EMAIL"]
     localInfo = configObject["LOCAL"]
@@ -47,8 +49,8 @@ def main():
         sequencer = localInfo["sequencer"]
     else:
         sequencer = args.sequencer
-    inputDirs = localInfo["inputDirs"].split(",")
-    outputDirs = serverInfo["outputdirs"].split(",")
+    inputDirs = localInfo["inputdirs"]
+    outputDirs = serverInfo["outputdirs"]
     inOutMap = dict(zip(inputDirs,outputDirs))
     
     #For Regex matching use https://javascript.info/regexp-quantifiers

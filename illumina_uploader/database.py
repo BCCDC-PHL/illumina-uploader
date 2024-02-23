@@ -35,7 +35,7 @@ class Database:
 
         if len(non_existent_inputs) > 0:
             for i in non_existent_inputs:
-                self.logger.error("File or directory does not exist: " + i + " Check config.ini file.")
+                self.logger.error("File or directory does not exist: " + i + " Check config.json file.")
             raise SystemExit(1)
 
     def initConnection(self):
