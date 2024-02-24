@@ -160,8 +160,13 @@ See [config.ini.template](config.ini.template) for format details.
 - v0.8   - One page Web UI for viewing DB in browser
 - v0.9   - Finalize config.ini template, add linter and coverage tests
 - v1.0   - Long Term Release (LTM)
+- v1.1   - Change config from .ini to json type
 
 ## Troubleshooting
+
+### Problem: `sqlite3.OperationalError: no such table: folderinfo`
+Solution: setup db first ie. `illumina-uploader --create-db`
+
 ### Problem: `$'\r': command not found`
 Solution: Add at the end of `~/.bash_profile` (in /home/USER):
 ```
