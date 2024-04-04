@@ -25,7 +25,7 @@
       "mailsubject": "[illumina-uploader] {status} miseq data transfer to sabin",
       "mailbody": "Run directory {folderToUpload} {status} transferring to Sabin at {timeOfMail}",
     },
-    "TOKEN_EMAIL": {
+    "PLOVER_EMAIL": {
       "enabled": false,
       "emailurl": "https://emailprovider.com",
       "emailtoken": "secrettoken",
