@@ -22,11 +22,23 @@
     },
     "EMAIL": {
       "enabled": false,
+      "mailsubject": "[illumina-uploader] {status} miseq data transfer to sabin",
+      "mailbody": "Run directory {folderToUpload} {status} transferring to Sabin at {timeOfMail}",
+    },
+    "TOKEN_EMAIL": {
+      "enabled": false,
       "emailurl": "https://emailprovider.com",
       "emailtoken": "secrettoken",
-      "mailto": "recipient",
-      "mailsubject": "[illumina-uploader] {status} miseq data transfer to sabin",
-      "mailbody": "Run directory {folderToUpload} {status} transferring to Sabin at {timeOfMail}"
+      "mailto": "recipient"
+    },
+    "MCMS_EMAIL": {
+      "enabled": false,
+      "authurl": "https://site.com/token",
+      "clientid": "client_id",
+      "clientsecret": "client_secret",
+      "emailurl": "https://site.com/email",
+      "mailto": ["king.choi@phsa.ca"],
+      "senderemail": "sender_email",
     },
     "COMMANDS": {
       "rsynccommand": "rsync -artvh -p -e \"{sshformat} -i {pem}\" {chmod} {inDir}/{inFile} {login}@{host}:{outDir}",
