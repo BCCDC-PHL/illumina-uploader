@@ -128,6 +128,8 @@ def main():
                 "token": ploverEmailInfo["emailtoken"],
                 "emailurl": ploverEmailInfo["emailurl"],
             }
+            folderToUpload = ""
+            reason = ""
             if mcmsEmailInfo['enabled']:
                 if not(field in mcmsEmailInfo for field in ['authurl','emailurl','clientid','clientsecret','senderemail','recipientemail']):
                     logger.error('MCMS incorrectly configured')
