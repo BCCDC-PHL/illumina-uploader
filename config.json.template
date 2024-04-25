@@ -1,8 +1,8 @@
 {
     "LOCAL": {
       "inputdirs": [
-        "/path/to/local/input/directory/1",
-        "/path/to/local/input/directory/2"
+        "/path/to/local/input/directory/1/",
+        "/path/to/local/input/directory/2/"
       ],
       "sequencer": "miseq",
       "folderregexmiseq": "\\d{6}_[A-Z0-9]{6}_\\d{4}_\\d{9}-[A-Z0-9]{5}$",
@@ -16,17 +16,29 @@
       "pemfile": "/path/to/hostname.pem",
       "loginid": "firstname.lastname",
       "outputdirs": [
-        "/path/to/remote/output/directory/1",
-        "/path/to/remote/output/directory/2"
+        "/path/to/remote/output/directory/1/",
+        "/path/to/remote/output/directory/2/"
       ]
     },
     "EMAIL": {
       "enabled": false,
-      "emailurl": "https://emailprovider.com",
-      "emailtoken": "secrettoken",
-      "mailto": "recipient",
       "mailsubject": "[illumina-uploader] {status} miseq data transfer to sabin",
       "mailbody": "Run directory {folderToUpload} {status} transferring to Sabin at {timeOfMail}"
+    },
+    "PLOVER_EMAIL": {
+      "enabled": false,
+      "emailurl": "https://emailprovider.com",
+      "emailtoken": "secrettoken",
+      "mailto": "recipient"
+    },
+    "MCMS_EMAIL": {
+      "enabled": false,
+      "authurl": "https://site.com/token",
+      "clientid": "client_id",
+      "clientsecret": "client_secret",
+      "emailurl": "https://site.com/email",
+      "mailto": ["user@phsa.ca"],
+      "senderemail": "sender_email@phsa.ca"
     },
     "COMMANDS": {
       "rsynccommand": "rsync -artvh -p -e \"{sshformat} -i {pem}\" {chmod} {inDir}/{inFile} {login}@{host}:{outDir}",
