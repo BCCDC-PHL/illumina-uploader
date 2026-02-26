@@ -42,6 +42,7 @@
     },
     "COMMANDS": {
       "rsynccommand": "rsync -artvh -p -e \"{sshformat} -i {pem}\" {chmod} {inDir}/{inFile} {login}@{host}:{outDir}",
+      "sshlockdircommand": "{sshformat} {login}@{host} -i {pem}  \"find {outDir} -type d -exec chmod 550 {{}} \\; -o -type f -exec chmod 440 {{}} \\;\"",
       "scpcommand": "scp -i {pem} {inDir}/{filename} {login}@{host}:{outDir}/{filename}",
       "sshnixcommand": "ssh",
       "sshwincommand": "/usr/bin/ssh",

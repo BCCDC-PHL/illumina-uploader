@@ -110,6 +110,7 @@ def main():
             "login": serverInfo["loginid"],
             "chmod": commands["chmodcommand"],
             "rsync": commands["rsynccommand"],
+            "sshlockdir": commands["sshlockdircommand"],
             "sshformat": sshformat,
             "scp": commands["scpcommand"],
             "logger": logger,

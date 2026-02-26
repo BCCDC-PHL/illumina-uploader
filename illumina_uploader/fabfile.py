@@ -66,6 +66,7 @@ def scpUploadCompleteJson(context, args):
     args["inDir"] =  os.path.join(os.path.dirname(os.path.realpath(__file__)), "tmp")
     args["outDir"] = os.path.join(actualOutDir + args["inFile"])
     args["filename"] = "upload_complete.json"
+    lockDirStep = args["sshlockdir"].format_map(args)
     try:
         #Create upload_complete.json
         createStepString = ""
@@ -85,6 +86,9 @@ def scpUploadCompleteJson(context, args):
         scpStep = args["scp"].format_map(args)
         if debug: logger.info("SCP upload_complete.json: "+scpStep)
         result = context.run(scpStep)
+        if result.ok:
+            if debug: logger.info("Locking directory: "+ lockDirStep)
+            context.run(lockDirStep)
     except (UnexpectedExit, KeyboardInterrupt) as error:
         logger.info("Interrupted!")
         logger.info(error)
