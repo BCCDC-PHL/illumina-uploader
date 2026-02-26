@@ -122,6 +122,7 @@ def main():
             logger.info("This process will exit now, and {0} will get picked up by the other illumina-uploader process".format(single_run))
             exit(0)
         else:
+            sleeptimeInSeconds = int(localInfo["sleeptime"])*60
             ploverEmailArgs = {
                 "debug": isDebug,
                 "mailto": ploverEmailInfo["mailto"],
@@ -130,6 +131,7 @@ def main():
             }
             folderToUpload = ""
             reason = ""
+            shouldStopEmails = False
             if mcmsEmailInfo['enabled']:
                 if not(field in mcmsEmailInfo for field in ['authurl','emailurl','clientid','clientsecret','senderemail','recipientemail']):
                     logger.error('MCMS incorrectly configured')
@@ -145,59 +147,73 @@ def main():
                 #Default mail args
                 try:
                     runsCache = dbObject.watchDirectories(localInfo["watchfilepath"], inOutMap)
-                except KeyboardInterrupt as error:
+                    foldersToUpload = dbObject.getFolderList()
+                    shouldStopEmails = False
+                    if runsCache:
+                        for folderName in foldersToUpload:
+                            folderToUpload = folderName[0]
+                            runArgs["inFile"] = folderToUpload
+                            #Mail send before start
+                            status = "STARTED"
+                            reason = ""
+                            if emailInfo['enabled']:
+                                subject = emailInfo["mailsubject"].format(status=status)
+                                body = emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=getDateTimeNow(), reason=reason)
+                                if ploverEmailInfo["enabled"]:
+                                    sendEmailUsingPlover(ploverEmailInfo["emailurl"], { **ploverEmailArgs, 'subject': subject, 'body': body}, logger)
+                                if mcmsEmailInfo["enabled"]:
+                                    mcms.send_email(mcmsEmailInfo['emailurl'], mcmsEmailInfo['mailto'], subject, body) 
+                            runArgs["runscache"] = runsCache
+                            isSuccessful = False
+                            runArgs["starttime"] = getDateTimeNowIso()
+                            try:
+                                isSuccessful = uploadRunToServer(context, runArgs)
+                            except (socket.error, OSError) as error:
+                                logger.error("Fatal OS / network error: {0}".format(error))
+                                reason = "Fatal OS / network error.. will try again in {0} minutes".format(localInfo["sleeptime"])
+                            status = "FINISHED" if isSuccessful else "FAILED"
+                            logger.info("Marking in DB as {0}".format(status))
+                            dbObject.markFileInDb(folderToUpload, status)
+                            #Create json file
+                            if isSuccessful:
+                                scpUploadCompleteJson(context, runArgs)
+                            #Mail send after done, update subject and body
+                            if emailInfo['enabled']:
+                                subject = emailInfo["mailsubject"].format(status=status)
+                                body = emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=getDateTimeNow(), reason=reason)
+                                if ploverEmailInfo["enabled"]:
+                                    sendEmailUsingPlover(ploverEmailInfo["emailurl"], { **ploverEmailArgs, 'subject': subject, 'body': body}, logger)
+                                if mcmsEmailInfo["enabled"]:
+                                    mcms.send_email(mcmsEmailInfo['emailurl'], mcmsEmailInfo['mailto'], subject, body) 
+                    #Goto sleep (displayed in minutes)
+                    logger.info("Sleeping for {0} minutes".format(localInfo["sleeptime"]))
+                    
+                    time.sleep(sleeptimeInSeconds)
+                except FileNotFoundError as error:
                     reason = "{0}. Network drive needs to be reconnected. Will retry again in {1} minutes".format(error, localInfo["sleeptime"])
+                    logger.info(error)
                     logger.error(reason)
-                    if emailInfo['enabled']:
+                    if emailInfo['enabled'] and not shouldStopEmails:
+                        shouldStopEmails = True
                         subject = emailInfo["mailsubject"].format(status="ERROR")
                         body = emailInfo["mailbody"].format(folderToUpload="cannot be read", status="ERROR", timeOfMail=getDateTimeNow(), reason=reason)
                         if ploverEmailInfo["enabled"]:
                             sendEmailUsingPlover(ploverEmailInfo["emailurl"], { **ploverEmailArgs, 'subject': subject, 'body': body}, logger)
                         if mcmsEmailInfo["enabled"]:
                             mcms.send_email(mcmsEmailInfo['emailurl'], mcmsEmailInfo['mailto'], subject, body) 
-                foldersToUpload = dbObject.getFolderList()
-                if runsCache:
-                    for folderName in foldersToUpload:
-                        folderToUpload = folderName[0]
-                        runArgs["inFile"] = folderToUpload
-                        #Mail send before start
-                        status = "STARTED"
-                        reason = ""
-                        if emailInfo['enabled']:
-                            subject = emailInfo["mailsubject"].format(status=status)
-                            body = emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=getDateTimeNow(), reason=reason)
-                            if ploverEmailInfo["enabled"]:
-                                sendEmailUsingPlover(ploverEmailInfo["emailurl"], { **ploverEmailArgs, 'subject': subject, 'body': body}, logger)
-                            if mcmsEmailInfo["enabled"]:
-                                mcms.send_email(mcmsEmailInfo['emailurl'], mcmsEmailInfo['mailto'], subject, body) 
-                        runArgs["runscache"] = runsCache
-                        isSuccessful = False
-                        runArgs["starttime"] = getDateTimeNowIso()
-                        try:
-                            isSuccessful = uploadRunToServer(context, runArgs)
-                        except (socket.error, OSError) as error:
-                            logger.error("Fatal OS / network error: {0}".format(error))
-                            reason = "Fatal OS / network error.. will try again in {0} minutes".format(localInfo["sleeptime"])
-                        status = "FINISHED" if isSuccessful else "FAILED"
-                        logger.info("Marking in DB as {0}".format(status))
-                        dbObject.markFileInDb(folderToUpload, status)
-                        #Create json file
-                        if isSuccessful:
-                            scpUploadCompleteJson(context, runArgs)
-                        #Mail send after done, update subject and body
-                        if emailInfo['enabled']:
-                            subject = emailInfo["mailsubject"].format(status=status)
-                            body = emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=getDateTimeNow(), reason=reason)
-                            if ploverEmailInfo["enabled"]:
-                                sendEmailUsingPlover(ploverEmailInfo["emailurl"], { **ploverEmailArgs, 'subject': subject, 'body': body}, logger)
-                            if mcmsEmailInfo["enabled"]:
-                                mcms.send_email(mcmsEmailInfo['emailurl'], mcmsEmailInfo['mailto'], subject, body) 
-                #Goto sleep (displayed in minutes)
-                logger.info("Sleeping for {0} minutes".format(localInfo["sleeptime"]))
-                sleeptimeInSeconds = int(localInfo["sleeptime"])*60
-                time.sleep(sleeptimeInSeconds)
-    except FileNotFoundError as error:
-        logger.info(error)
+                    
+                    time.sleep(sleeptimeInSeconds)
+    except Exception as err:
+        if emailInfo['enabled']:
+            reason = err
+            status = "Fatal Error"
+            subject = emailInfo["mailsubject"].format(status=status)
+            body = emailInfo["mailbody"].format(folderToUpload=folderToUpload, status=status, timeOfMail=getDateTimeNow(), reason=reason)
+            if ploverEmailInfo["enabled"]:
+                sendEmailUsingPlover(ploverEmailInfo["emailurl"], { **ploverEmailArgs, 'subject': subject, 'body': body}, logger)
+            if mcmsEmailInfo["enabled"]:
+                mcms.send_email(mcmsEmailInfo['emailurl'], mcmsEmailInfo['mailto'], subject, body) 
+        logger.info(err)
         logger.info("Shutting down Directory Watch. Exiting.")
 
 if __name__ == "__main__":
